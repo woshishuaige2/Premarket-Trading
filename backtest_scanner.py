@@ -32,15 +32,18 @@ class BacktestEngine:
         """Fetch 1s and 5s bars from TWS for a specific date."""
         # TWS expects "YYYYMMDD HH:MM:SS"
         target_date = datetime.strptime(date_str, "%Y-%m-%d")
-        # End of premarket window (approx 9:30 AM)
-        end_dt = target_date.replace(hour=9, minute=30, second=0)
+        # Use 10:00 AM to ensure we capture the full 9:30 AM open if needed
+        end_dt = target_date.replace(hour=10, minute=0, second=0)
         
-        print(f"[BACKTEST] Fetching 5s bars for {self.symbol} on {date_str}...")
-        bars_5s_raw = tws_app.fetch_historical_bars(self.symbol, end_dt, duration="4 H", bar_size="5 secs")
+        # Use exact format from Scanner-Alert: "1 D" and "YYYYMMDD HH:MM:SS US/Eastern"
+        print(f"[BACKTEST] Requesting 5s bars for {self.symbol} on {date_str}...")
+        bars_5s_raw = tws_app.fetch_historical_bars(self.symbol, end_dt, duration="1 D", bar_size="5 secs")
+        print(f"[DEBUG] {self.symbol} 5s bars received: {len(bars_5s_raw)}")
         
-        print(f"[BACKTEST] Fetching 1s bars for {self.symbol} on {date_str}...")
-        # Note: TWS might limit 1s data duration. We fetch enough for the premarket windows.
-        bars_1s_raw = tws_app.fetch_historical_bars(self.symbol, end_dt, duration="2 H", bar_size="1 secs")
+        print(f"[BACKTEST] Requesting 1s bars for {self.symbol} on {date_str}...")
+        # 1s bars are limited to 1800-3600 seconds per request in some TWS versions
+        bars_1s_raw = tws_app.fetch_historical_bars(self.symbol, end_dt, duration="1800 S", bar_size="1 secs")
+        print(f"[DEBUG] {self.symbol} 1s bars received: {len(bars_1s_raw)}")
         
         def convert_bars(raw_list):
             converted = []

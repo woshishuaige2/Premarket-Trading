@@ -42,7 +42,7 @@ def main():
             bars_1s, bars_5s = engine.load_tws_data(tws_app, args.date)
             
             if not bars_1s or not bars_5s:
-                print(f"[SKIP] No data found for {symbol} on {args.date}")
+                print(f"[SKIP] Insufficient data for {symbol} on {args.date} (1s: {len(bars_1s)}, 5s: {len(bars_5s)})")
                 continue
                 
             print(f"[RUN] Simulating {symbol} with {len(bars_1s)} 1s-bars and {len(bars_5s)} 5s-bars...")
