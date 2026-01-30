@@ -1,221 +1,128 @@
-
+"""
+Backtest Scanner for Premarket Strategy
+Uses shared StrategyLogic to ensure consistency with live trading.
+"""
 from datetime import datetime, timedelta
 from typing import List, Dict, Optional, Tuple
 from dataclasses import dataclass, field
-import json
+import numpy as np
+from conditions import MarketData, Bar, StrategyLogic
+import strategy_config as config
 
-from conditions import (
-    AlertConditionSet,
-    MarketData,
-    PriceAboveVWAPCondition,
-    UnifiedMomentumCondition
-)
-
-# Import TWS integration - REQUIRED
-try:
-    from tws_data_fetcher import create_tws_data_app, TWSDataApp
-except ImportError:
-    print("[ERROR] TWS integration not available. Install ibapi: pip install ibapi")
-    exit(1)
-
-@dataclass
-class BacktestAlert:
-    """Container for a triggered alert during backtest"""
-    symbol: str
-    timestamp: datetime
-    price: float
-    volume: int
-    vwap: float
-    conditions_triggered: List[str]
-    
-    def to_dict(self) -> Dict:
-        return {
-            'symbol': self.symbol,
-            'timestamp': self.timestamp.strftime("%Y-%m-%d %H:%M:%S.%f")[:-3],
-            'price': f"${self.price:.2f}",
-            'volume': f"{self.volume:,}",
-            'vwap': f"${self.vwap:.2f}",
-            'conditions': self.conditions_triggered
-        }
-
-class BacktestSymbolData:
-    def __init__(self, symbol: str):
+class BacktestEngine:
+    def __init__(self, symbol: str, initial_capital: float = 10000.0):
         self.symbol = symbol
-        self.data: List[Dict] = []
-    
-    def add_candle(self, timestamp, open_p, high, low, close, volume, vwap):
-        self.data.append({
-            'timestamp': timestamp, 'open': open_p, 'high': high, 'low': low, 
-            'close': close, 'volume': volume, 'vwap': vwap
-        })
-
-class BacktestAlertScanner:
-    def __init__(self, symbols: List[str], date: str):
-        self.symbols = symbols
-        self.date = datetime.strptime(date, "%Y-%m-%d") if isinstance(date, str) else date
-        self.symbol_data: Dict[str, BacktestSymbolData] = {s: BacktestSymbolData(s) for s in symbols}
-        self.alerts: Dict[str, List[BacktestAlert]] = {s: [] for s in symbols}
-        self.last_alert_time: Dict[str, datetime] = {s: None for s in symbols}
-        self.alert_cooldown = timedelta(seconds=60)
-        self.condition_sets: Dict[str, AlertConditionSet] = {}
+        self.capital = initial_capital
+        self.market_data = MarketData(symbol=symbol, timestamp=datetime.now())
         
-        # Mock Trading Assets
-        self.initial_asset = 10000.0
-        self.trade_investment = 1000.0
-        self.commission_per_trade = 1.0  # $1 minimum commission
-        self.current_assets: Dict[str, float] = {s: self.initial_asset for s in symbols}
+        # History for backtest
+        self.full_history: List[Bar] = []
+        self.trades = []
         
-        self._initialize_condition_sets()
-    
-    def _initialize_condition_sets(self):
-        for symbol in self.symbols:
-            cs = AlertConditionSet(f"{symbol}_backtest")
-            # Unified Strict Momentum Logic
-            cs.add_condition(UnifiedMomentumCondition())
-            self.condition_sets[symbol] = cs
+        # State
+        self.state = "IDLE"
+        self.entry_price = 0.0
+        self.stop_price = 0.0
+        self.entry_time = None
+        self.R = 0.0
+        self.shares = 0
+        self.arm_time = None
 
-    def add_candle(self, symbol, ts, o, h, l, c, v, vwap):
-        self.symbol_data[symbol].add_candle(ts, o, h, l, c, v, vwap)
-
-    def load_data_from_tws(self, tws_app, bar_size="1 min", duration="1 D"):
-        # TWS expects US/Eastern for historical data
-        end_dt = datetime.combine(self.date.date(), datetime.strptime("16:00:00", "%H:%M:%S").time())
-        success = True
-        for symbol in self.symbols:
-            print(f"[INFO] Requesting {bar_size} bars for {symbol}...")
-            bars = tws_app.fetch_historical_bars(symbol, end_dt, duration, bar_size, "TRADES")
-            if not bars:
-                success = False; continue
-            for bar in bars:
-                try:
-                    ds = bar['date']
-                    if ' ' in ds:
-                        parts = ds.split()
-                        if len(parts) >= 3 and '/' in parts[-1]: ds = ' '.join(parts[:-1])
-                    bdt = datetime.strptime(ds, "%Y%m%d %H:%M:%S") if len(ds) > 8 else datetime.strptime(ds, "%Y%m%d")
-                    if bdt.date() == self.date.date():
-                        self.add_candle(symbol, bdt, bar['open'], bar['high'], bar['low'], bar['close'], bar['volume'], bar['average'])
-                except: continue
-        return success
-
-    def run_backtest(self):
-        for symbol in self.symbols:
-            candles = sorted(self.symbol_data[symbol].data, key=lambda x: x['timestamp'])
-            price_history = {}
-            volume_history = {}
+    def add_bar_1s(self, bar: Bar):
+        self.market_data.timestamp = bar.timestamp
+        self.market_data.price = bar.close
+        self.market_data.bars_1s.append(bar)
+        
+        # Maintain 1s window for medians
+        if len(self.market_data.bars_1s) > 300:
+            self.market_data.bars_1s.pop(0)
             
-            # Cumulative tracking for accurate VWAP
-            cumulative_pv = 0.0
-            cumulative_volume = 0.0
+        # Mock bid/ask for backtest (0.01 spread)
+        self.market_data.bid = bar.close - 0.005
+        self.market_data.ask = bar.close + 0.005
+        self.market_data.bid_time = bar.timestamp
+        self.market_data.ask_time = bar.timestamp
+        
+        # Update medians
+        mv1, _, _ = StrategyLogic.calculate_medians(self.market_data.bars_1s, 120)
+        self.market_data.med_vol_1s = mv1
+        
+        self._process_logic()
+
+    def add_bar_5s(self, bar: Bar):
+        self.market_data.bars_5s.append(bar)
+        if len(self.market_data.bars_5s) > 120:
+            self.market_data.bars_5s.pop(0)
             
-            for candle in candles:
-                ts = candle['timestamp']
-                price = candle['close']
-                volume = candle['volume']
-                
-                # Update cumulative VWAP
-                cumulative_pv += price * volume
-                cumulative_volume += volume
-                current_vwap = cumulative_pv / cumulative_volume if cumulative_volume > 0 else 0.0
-                
-                price_history[ts] = price
-                volume_history[ts] = volume
-                
-                # Mock bid/ask for backtest spread filter
-                md = MarketData(
-                    symbol=symbol, 
-                    price=price, 
-                    volume=volume, 
-                    vwap=current_vwap, 
-                    timestamp=ts, 
-                    bid=price-0.01, 
-                    ask=price+0.01,
-                    price_history=price_history, 
-                    volume_history=volume_history
-                )
-                cs = self.condition_sets[symbol]
-                if cs.check_all(md):
-                    last = self.last_alert_time[symbol]
-                    if last is None or (ts - last) >= self.alert_cooldown:
-                        # Capture logic used from conditions
-                        logic_used = "Unknown"
-                        for cond in cs.conditions:
-                            if isinstance(cond, UnifiedMomentumCondition):
-                                logic_used = cond.logic_used
-                                break
-                        
-                        reasons = cs.triggered_reasons[:]
-                        reasons.append(f"Logic: {logic_used}")
-                        
-                        alert = BacktestAlert(symbol, ts, price, volume, current_vwap, reasons)
-                        self.alerts[symbol].append(alert)
-                        self.last_alert_time[symbol] = ts
-        return self.alerts
+        # Update medians
+        mv5, mr5, _ = StrategyLogic.calculate_medians(self.market_data.bars_5s, 120)
+        self.market_data.med_vol_5s = mv5
+        self.market_data.med_range_5s = mr5
 
-    def calculate_pl(self, tp_pct: float, sl_pct: float, slippage_pct: float = 0.2):
-        """
-        Calculate P/L for each alert based on subsequent candles and update assets.
-        Includes commission and simulated slippage.
-        """
-        results = {s: [] for s in self.symbols}
-        for symbol in self.symbols:
-            candles = sorted(self.symbol_data[symbol].data, key=lambda x: x['timestamp'])
-            for alert in self.alerts[symbol]:
-                # Apply entry slippage (buying higher than alert price)
-                entry_price = alert.price * (1 + slippage_pct / 100)
-                
-                tp_price = entry_price * (1 + tp_pct / 100)
-                sl_price = entry_price * (1 - sl_pct / 100)
-                
-                outcome = "OPEN"
-                exit_price = entry_price
-                exit_time = None
-                
-                # Look at subsequent candles
-                for candle in candles:
-                    if candle['timestamp'] <= alert.timestamp: continue
-                    
-                    if candle['high'] >= tp_price:
-                        outcome = "WIN"
-                        # Apply exit slippage for WIN (selling lower than TP price)
-                        exit_price = tp_price * (1 - slippage_pct / 100)
-                        exit_time = candle['timestamp']
-                        break
-                    elif candle['low'] <= sl_price:
-                        outcome = "LOSS"
-                        # Apply exit slippage for LOSS (selling lower than SL price)
-                        exit_price = sl_price * (1 - slippage_pct / 100)
-                        exit_time = candle['timestamp']
-                        break
-                
-                # Calculate Mock Trading Result
-                # Investment: $1000
-                shares = self.trade_investment / entry_price
-                gross_pl = (exit_price - entry_price) * shares
-                
-                # Tiered Commission: $0.005 per share, $1 minimum, max 1% of trade value
-                def calculate_commission(shares, price):
-                    comm = shares * 0.005
-                    trade_value = shares * price
-                    max_comm = trade_value * 0.01
-                    return min(max_comm, max(1.0, comm))
+    def _process_logic(self):
+        if self.state == "IDLE":
+            if StrategyLogic.is_in_window(self.market_data.timestamp):
+                shock_ok, _ = StrategyLogic.check_shock_1s(self.market_data)
+                if shock_ok:
+                    self.state = "ARMED"
+                    self.arm_time = self.market_data.timestamp
 
-                entry_commission = calculate_commission(shares, entry_price)
-                exit_commission = calculate_commission(shares, exit_price)
-                total_commission = entry_commission + exit_commission
-                net_pl = gross_pl - total_commission
+        elif self.state == "ARMED":
+            if (self.market_data.timestamp - self.arm_time).total_seconds() > config.ARM_TIMEOUT_SECONDS:
+                self.state = "IDLE"
+                return
+
+            confirm_ok, _ = StrategyLogic.check_confirm_5s(self.market_data)
+            # In backtest we assume safety_ok is true or mock it
+            no_fade = StrategyLogic.check_no_fade(self.market_data)
+            
+            if confirm_ok and no_fade:
+                # Execute Entry
+                self.entry_price = self.market_data.ask
+                med_range = self.market_data.med_range_5s
+                stop_dist = max(0.01, config.STOP_RANGE_MULT * med_range, self.entry_price * config.STOP_PCT)
+                self.stop_price = self.entry_price - stop_dist
+                self.R = self.entry_price - self.stop_price
+                self.entry_time = self.market_data.timestamp
+                self.shares = int(config.INVESTMENT_PER_TRADE / self.entry_price)
                 
-                # Update current assets for this symbol
-                self.current_assets[symbol] += net_pl
-                
-                results[symbol].append({
-                    'alert': alert, 
-                    'outcome': outcome, 
-                    'entry': entry_price, 
-                    'exit': exit_price, 
-                    'time': exit_time,
-                    'net_pl': net_pl,
-                    'commission': total_commission,
-                    'final_asset': self.current_assets[symbol]
+                if self.shares > 0:
+                    self.state = "IN_TRADE"
+                    # logging would go here
+
+        elif self.state == "IN_TRADE":
+            exit_triggered, reason = StrategyLogic.check_exit(
+                self.market_data, self.entry_price, self.stop_price, self.entry_time, self.R
+            )
+            if exit_triggered:
+                exit_price = self.market_data.bid
+                pnl = (exit_price - self.entry_price) * self.shares
+                self.trades.append({
+                    'symbol': self.symbol,
+                    'entry_time': self.entry_time,
+                    'exit_time': self.market_data.timestamp,
+                    'entry_price': self.entry_price,
+                    'exit_price': exit_price,
+                    'pnl': pnl,
+                    'reason': reason
                 })
-        return results
+                self.capital += pnl
+                self.state = "IDLE"
+
+def run_backtest(symbol: str, bars_1s: List[Bar], bars_5s: List[Bar]):
+    engine = BacktestEngine(symbol)
+    
+    # We need to feed 1s and 5s bars in chronological order
+    # For simplicity in this backtest script, we align them by timestamp
+    all_events = []
+    for b in bars_1s: all_events.append((b.timestamp, '1s', b))
+    for b in bars_5s: all_events.append((b.timestamp, '5s', b))
+    all_events.sort(key=lambda x: x[0])
+    
+    for ts, type, bar in all_events:
+        if type == '1s':
+            engine.add_bar_1s(bar)
+        else:
+            engine.add_bar_5s(bar)
+            
+    return engine.trades, engine.capital

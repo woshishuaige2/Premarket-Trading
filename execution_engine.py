@@ -1,40 +1,35 @@
 """
-Execution Engine for IBKR Paper Trading
-Handles order placement, position tracking, and risk management (TP/SL).
+Execution Engine for IBKR Premarket Strategy
+Handles aggressive limit orders, timeouts, and state tracking.
 """
 import threading
 import time
-import sys
+import logging
 from datetime import datetime
-from typing import Dict, Optional, List, Set
+from typing import Dict, Optional, List, Set, Tuple
 from ibapi.contract import Contract
 from ibapi.order import Order
+import strategy_config as config
 
 class ExecutionEngine:
-    def __init__(self, tws_app, account: str, tp_pct: float = 1.0, sl_pct: float = 10.0, investment_per_trade: float = 1000.0):
+    def __init__(self, tws_app, account: str):
         self.tws_app = tws_app
         self.account = account
-        self.tp_pct = tp_pct
-        self.sl_pct = sl_pct
-        self.investment_per_trade = investment_per_trade
         
-        # Position tracking: symbol -> {entry_price, shares, tp_price, sl_price, order_ids, status, time}
+        # State: symbol -> {status, entry_price, stop_price, R, shares, entry_time, order_id, ...}
         self.positions: Dict[str, Dict] = {}
-        # Order ID tracking: order_id -> symbol
         self.order_to_symbol: Dict[int, str] = {}
-        # Trade History: List of completed or failed trade records
         self.trade_history: List[Dict] = []
-        # Blacklisted symbols: symbols rejected by TWS due to permissions/margin
         self.blacklist: Set[str] = set()
+        self.consecutive_losses: int = 0
         
         self.lock = threading.Lock()
         
-        # Register order status callback
+        # Callbacks
         self.tws_app.order_status_callbacks.append(self._on_order_status)
-        # Register error callback to detect rejections
         self.tws_app.error_callbacks = getattr(self.tws_app, 'error_callbacks', [])
         self.tws_app.error_callbacks.append(self._on_tws_error)
-        
+
     def _create_contract(self, symbol: str) -> Contract:
         contract = Contract()
         contract.symbol = symbol
@@ -44,263 +39,161 @@ class ExecutionEngine:
         return contract
 
     def _on_tws_error(self, reqId: int, errorCode: int, errorString: str):
-        """Detect rejections and blacklist symbols"""
-        # Error 201: Order rejected
-        # Common reasons: No Trading Permission, Margin concern, etc.
-        if errorCode == 201:
-            with self.lock:
-                # Try to find the symbol for this reqId
-                symbol = self.order_to_symbol.get(reqId)
-                if symbol:
-                    print(f"[EXEC] CRITICAL: {symbol} rejected by TWS ({errorString}). Blacklisting for this session.")
+        if errorCode == 201: # Order rejected
+            symbol = self.order_to_symbol.get(reqId)
+            if symbol:
+                logging.error(f"[EXEC] {symbol} REJECTED: {errorString}")
+                with self.lock:
                     self.blacklist.add(symbol)
-                    
-                    # If we had a pending position, move it to history as FAILED
-                    if symbol in self.positions and self.positions[symbol]['status'] == 'SUBMITTED':
-                        pos = self.positions[symbol]
-                        self.trade_history.append({
-                            'symbol': symbol,
-                            'type': 'FAILED',
-                            'reason': f"REJECTED: {errorString[:30]}...",
-                            'entry_price': pos['entry_price'],
-                            'time': datetime.now()
-                        })
-                        self._cleanup_position(symbol)
+                    if symbol in self.positions:
+                        self._cleanup_position(symbol, "REJECTED")
 
     def _on_order_status(self, orderId, status, filled, remaining, avgFillPrice, parentId):
-        """Callback for order status updates from TWS"""
         with self.lock:
-            if orderId not in self.order_to_symbol:
-                return
-            
-            symbol = self.order_to_symbol[orderId]
-            if symbol not in self.positions:
+            symbol = self.order_to_symbol.get(orderId)
+            if not symbol or symbol not in self.positions:
                 return
                 
             pos = self.positions[symbol]
             
-            # If parent order is filled, position is officially OPEN
-            if orderId == pos['parent_id'] and status == 'Filled':
-                if pos['status'] != 'OPEN':
-                    pos['status'] = 'OPEN'
+            if status == 'Filled':
+                if pos['status'] == 'SUBMITTING':
+                    pos['status'] = 'IN_TRADE'
                     pos['actual_entry_price'] = avgFillPrice
-                    print(f"[EXEC] >>> POSITION OPEN: {symbol} at ${avgFillPrice:.2f} <<<")
-            
-            # If any order is rejected or cancelled
-            if status in ['Inactive', 'Cancelled', 'ApiCancelled']:
-                if pos['status'] == 'SUBMITTED':
-                    # Trade failed before opening
-                    self.trade_history.append({
-                        'symbol': symbol,
-                        'type': 'FAILED',
-                        'reason': status,
-                        'entry_price': pos['entry_price'],
-                        'time': datetime.now()
-                    })
-                    print(f"[EXEC] Order {orderId} for {symbol} FAILED ({status}).")
+                    pos['filled_shares'] = filled
+                    logging.info(f"[EXEC] >>> {symbol} FILLED at ${avgFillPrice:.2f} <<<")
+                elif pos['status'] == 'EXITING':
+                    logging.info(f"[EXEC] >>> {symbol} CLOSED at ${avgFillPrice:.2f} <<<")
+                    self._record_trade(symbol, "CLOSED", avgFillPrice)
                     self._cleanup_position(symbol)
-                elif pos['status'] == 'OPEN':
-                    # This might happen if an exit order is cancelled manually
-                    print(f"[EXEC] Warning: Exit order {orderId} for {symbol} was {status}.")
 
-            # If any of the exit orders (TP or SL) are filled, position is CLOSED
-            if orderId in [pos['tp_id'], pos['sl_id']] and status == 'Filled':
-                exit_type = 'TP' if orderId == pos['tp_id'] else 'SL'
-                print(f"[EXEC] >>> POSITION CLOSED: {symbol} via {exit_type} at ${avgFillPrice:.2f} <<<")
-                
-                self.trade_history.append({
-                    'symbol': symbol,
-                    'type': 'CLOSED',
-                    'exit_type': exit_type,
-                    'entry_price': pos.get('actual_entry_price', pos['entry_price']),
-                    'exit_price': avgFillPrice,
-                    'shares': pos['shares'],
-                    'time': datetime.now()
-                })
-                self._cleanup_position(symbol)
+            elif status in ['Cancelled', 'Inactive', 'ApiCancelled']:
+                if pos['status'] == 'SUBMITTING':
+                    if filled > 0:
+                        logging.info(f"[EXEC] {symbol} PARTIAL FILL: {filled} shares at ${avgFillPrice:.2f}")
+                        pos['status'] = 'IN_TRADE'
+                        pos['actual_entry_price'] = avgFillPrice
+                        pos['filled_shares'] = filled
+                    else:
+                        logging.info(f"[EXEC] {symbol} entry order CANCELLED/INACTIVE")
+                        self._cleanup_position(symbol)
+                elif pos['status'] == 'EXITING':
+                    # If exit order is cancelled, we might need to retry or it's a major issue
+                    logging.warning(f"[EXEC] WARNING: Exit order for {symbol} was {status}")
 
-    def _cleanup_position(self, symbol: str):
-        """Internal helper to clean up position tracking"""
+    def _cleanup_position(self, symbol: str, reason: str = ""):
         if symbol in self.positions:
-            del self.positions[symbol]
+            pos = self.positions[symbol]
             # Clean up order mapping
-            to_del = [oid for oid, sym in self.order_to_symbol.items() if sym == symbol]
-            for oid in to_del:
-                del self.order_to_symbol[oid]
+            oids = [oid for oid, sym in self.order_to_symbol.items() if sym == symbol]
+            for oid in oids:
+                if oid in self.order_to_symbol: del self.order_to_symbol[oid]
+            del self.positions[symbol]
 
-    def execute_trade(self, symbol: str, entry_price: float):
-        """Execute a new trade with bracket orders (TP and SL)"""
+    def _record_trade(self, symbol: str, type: str, exit_price: float):
+        pos = self.positions[symbol]
+        entry_price = pos.get('actual_entry_price', pos['entry_price'])
+        shares = pos.get('filled_shares', pos['shares'])
+        pnl = (exit_price - entry_price) * shares
+        
+        if pnl < 0:
+            self.consecutive_losses += 1
+        else:
+            self.consecutive_losses = 0
+            
+        self.trade_history.append({
+            'symbol': symbol,
+            'entry_price': entry_price,
+            'exit_price': exit_price,
+            'shares': shares,
+            'pnl': pnl,
+            'time': datetime.now(),
+            'exit_reason': pos.get('exit_reason', 'UNKNOWN')
+        })
+
+    def execute_entry(self, symbol: str, ask_price: float, stop_price: float, R: float) -> bool:
+        """Place an aggressive limit buy order with timeout."""
         with self.lock:
-            if symbol in self.positions:
-                return True
+            if symbol in self.positions or symbol in self.blacklist:
+                return False
             
-            if symbol in self.blacklist:
-                print(f"[EXEC] Skipping {symbol} - symbol is blacklisted due to prior TWS rejection.")
+            if self.consecutive_losses >= config.MAX_CONSECUTIVE_LOSSES:
+                logging.warning(f"[EXEC] Kill switch active: {self.consecutive_losses} consecutive losses.")
                 return False
 
-            # Calculate shares and bracket prices
-            shares = int(self.investment_per_trade / entry_price)
-            if shares <= 0:
-                print(f"[EXEC] Investment too low for {symbol}. Skipping.")
-                return False
-                
-            tp_price = round(entry_price * (1 + self.tp_pct / 100), 2)
-            sl_price = round(entry_price * (1 - self.sl_pct / 100), 2)
+            limit_price = round(ask_price + config.ENTRY_OFFSET, 2)
+            shares = int(config.INVESTMENT_PER_TRADE / limit_price)
+            if shares <= 0: return False
             
-            # Create orders
-            parent_id = self.tws_app.next_order_id
-            self.tws_app.next_order_id += 3
+            order_id = self.tws_app.next_order_id
+            self.tws_app.next_order_id += 1
             
             contract = self._create_contract(symbol)
+            order = Order()
+            order.orderId = order_id
+            order.action = "BUY"
+            order.orderType = "LMT"
+            order.lmtPrice = limit_price
+            order.totalQuantity = shares
+            order.account = self.account
+            order.outsideRth = True
+            order.transmit = True
             
-            # 1. Parent Market Order
-            parent = Order()
-            parent.orderId = parent_id
-            parent.action = "BUY"
-            parent.orderType = "MKT"
-            parent.totalQuantity = shares
-            parent.transmit = False
-            parent.tif = "DAY"
-            parent.account = self.account
-            parent.outsideRth = True
-            
-            # 2. Take Profit Limit Order
-            tp_order = Order()
-            tp_order.orderId = parent_id + 1
-            tp_order.action = "SELL"
-            tp_order.orderType = "LMT"
-            tp_order.totalQuantity = shares
-            tp_order.lmtPrice = tp_price
-            tp_order.parentId = parent_id
-            tp_order.ocaGroup = f"OCA_{parent_id}"
-            tp_order.ocaType = 1
-            tp_order.transmit = False
-            tp_order.outsideRth = True
-            
-            # 3. Stop Loss Order
-            sl_order = Order()
-            sl_order.orderId = parent_id + 2
-            sl_order.action = "SELL"
-            sl_order.orderType = "STP"
-            sl_order.totalQuantity = shares
-            sl_order.auxPrice = sl_price
-            sl_order.parentId = parent_id
-            sl_order.ocaGroup = f"OCA_{parent_id}"
-            sl_order.ocaType = 1
-            sl_order.transmit = True
-            sl_order.outsideRth = True
-
-            # Fix for TWS Error Codes 10268 & 10269
-            for o in [parent, tp_order, sl_order]:
-                o.eTradeOnly = False
-                o.firmQuoteOnly = False
-            
-            # Track position and orders
             self.positions[symbol] = {
-                'entry_price': entry_price,
+                'status': 'SUBMITTING',
+                'entry_price': limit_price,
+                'stop_price': stop_price,
+                'R': R,
                 'shares': shares,
-                'tp_price': tp_price,
-                'sl_price': sl_price,
-                'parent_id': parent_id,
-                'tp_id': tp_order.orderId,
-                'sl_id': sl_order.orderId,
-                'status': 'SUBMITTED',
-                'time': datetime.now()
+                'entry_time': datetime.now(),
+                'order_id': order_id
             }
-            self.order_to_symbol[parent_id] = symbol
-            self.order_to_symbol[tp_order.orderId] = symbol
-            self.order_to_symbol[sl_order.orderId] = symbol
+            self.order_to_symbol[order_id] = symbol
             
-            # Place orders
-            self.tws_app.placeOrder(parent.orderId, contract, parent)
-            print(f"[EXEC] Submitted Parent Order {parent.orderId} for {symbol}")
-            self.tws_app.placeOrder(tp_order.orderId, contract, tp_order)
-            print(f"[EXEC] Submitted TP Order {tp_order.orderId} for {symbol}")
-            self.tws_app.placeOrder(sl_order.orderId, contract, sl_order)
-            print(f"[EXEC] Submitted SL Order {sl_order.orderId} for {symbol}")
+            self.tws_app.placeOrder(order_id, contract, order)
+            logging.info(f"[EXEC] Entry submitted for {symbol}: {shares} @ ${limit_price}")
             
-            print(f"[EXEC] Bracket Order Submitted for {symbol}: {shares} shares")
+            # Start timeout thread
+            threading.Thread(target=self._handle_entry_timeout, args=(symbol, order_id), daemon=True).start()
             return True
 
-    def is_position_active(self, symbol: str) -> bool:
-        """Check if a position is currently active or pending for a symbol"""
+    def _handle_entry_timeout(self, symbol: str, order_id: int):
+        time.sleep(config.ENTRY_TIMEOUT_MS / 1000.0)
         with self.lock:
-            return symbol in self.positions
+            if symbol in self.positions and self.positions[symbol]['status'] == 'SUBMITTING':
+                logging.info(f"[EXEC] Timeout reached for {symbol} entry. Cancelling.")
+                self.tws_app.cancelOrder(order_id)
+                # Status will be updated via _on_order_status
 
-    def close_all_positions(self):
-        """Close all open positions and cancel pending orders (EOD cleanup)"""
+    def execute_exit(self, symbol: str, price: float, reason: str):
+        """Exit position with a market order (or aggressive limit)."""
         with self.lock:
-            if not self.positions:
-                print("[EXEC] No active positions to close for EOD.")
+            if symbol not in self.positions or self.positions[symbol]['status'] != 'IN_TRADE':
                 return
-
-            print(f"[EXEC] EOD Cleanup: Closing {len(self.positions)} positions...")
-            # We need to iterate over a copy of keys because _cleanup_position deletes from self.positions
-            symbols = list(self.positions.keys())
             
-            for symbol in symbols:
-                pos = self.positions[symbol]
-                contract = self._create_contract(symbol)
-                
-                # 1. Cancel all pending bracket orders
-                for oid in [pos['tp_id'], pos['sl_id']]:
-                    self.tws_app.cancelOrder(oid)
-                
-                # 2. If position is OPEN, submit a Market Order to close it
-                if pos['status'] == 'OPEN':
-                    close_order = Order()
-                    close_order.action = "SELL"
-                    close_order.orderType = "MKT"
-                    close_order.totalQuantity = pos['shares']
-                    close_order.account = self.account
-                    close_order.outsideRth = True # Ensure it can execute in after-hours if slightly late
-                    close_order.transmit = True
-                    
-                    # Fix for TWS Error Codes 10268 & 10269
-                    close_order.eTradeOnly = False
-                    close_order.firmQuoteOnly = False
-                    
-                    new_oid = self.tws_app.next_order_id
-                    self.tws_app.next_order_id += 1
-                    
-                    self.tws_app.placeOrder(new_oid, contract, close_order)
-                    print(f"[EXEC] EOD: Submitted Market Sell for {symbol} ({pos['shares']} shares)")
-                
-                # 3. Move to history and cleanup
-                self.trade_history.append({
-                    'symbol': symbol,
-                    'type': 'CLOSED',
-                    'exit_type': 'EOD',
-                    'entry_price': pos.get('actual_entry_price', pos['entry_price']),
-                    'exit_price': 0.0, # Will be updated by fill if we tracked it, but EOD is final
-                    'shares': pos['shares'],
-                    'time': datetime.now()
-                })
-                self._cleanup_position(symbol)
+            pos = self.positions[symbol]
+            pos['status'] = 'EXITING'
+            pos['exit_reason'] = reason
+            
+            contract = self._create_contract(symbol)
+            order = Order()
+            order.action = "SELL"
+            order.orderType = "MKT" # In premarket MKT might be rejected, use aggressive LMT
+            # TWS often accepts MKT in premarket if routed correctly, but LMT is safer
+            order.orderType = "LMT"
+            order.lmtPrice = round(price * 0.98, 2) # 2% slippage allowance for fast exit
+            order.totalQuantity = pos['filled_shares']
+            order.account = self.account
+            order.outsideRth = True
+            order.transmit = True
+            
+            order_id = self.tws_app.next_order_id
+            self.tws_app.next_order_id += 1
+            self.order_to_symbol[order_id] = symbol
+            
+            self.tws_app.placeOrder(order_id, contract, order)
+            logging.info(f"[EXEC] Exit submitted for {symbol} ({reason})")
 
-    def get_active_positions_detailed(self) -> List[Dict]:
-        """Returns detailed list of active positions for visualization"""
+    def get_position(self, symbol: str) -> Optional[Dict]:
         with self.lock:
-            details = []
-            for symbol, pos in self.positions.items():
-                details.append({
-                    'symbol': symbol,
-                    'status': pos['status'],
-                    'entry': pos['entry_price'],
-                    'actual_entry': pos.get('actual_entry_price'),
-                    'tp': pos['tp_price'],
-                    'sl': pos['sl_price'],
-                    'shares': pos['shares'],
-                    'time': pos['time']
-                })
-            return details
-
-    def get_trade_history(self) -> List[Dict]:
-        """Returns the history of closed or failed trades"""
-        with self.lock:
-            return list(self.trade_history)
-    
-    def get_blacklist(self) -> Set[str]:
-        """Returns the set of blacklisted symbols"""
-        with self.lock:
-            return set(self.blacklist)
+            return self.positions.get(symbol)

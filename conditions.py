@@ -1,116 +1,183 @@
 """
-Alert Conditions Module
-Defines centralized screening conditions for the scanner.
+Premarket Shock & Confirm Momentum Strategy - Core Logic
+Shared condition evaluation for both realtime and backtesting.
 """
-
-from abc import ABC, abstractmethod
-from dataclasses import dataclass
-from typing import Dict, Any, List, Optional
+import numpy as np
+from dataclasses import dataclass, field
 from datetime import datetime, timedelta
+from typing import List, Dict, Optional, Tuple
+import strategy_config as config
 
-
-# =============================================================================
-# CENTRALIZED ALERT CONFIGURATION
-# =============================================================================
-MAX_SPREAD_PCT = 0.5
+@dataclass
+class Bar:
+    timestamp: datetime
+    open: float
+    high: float
+    low: float
+    close: float
+    volume: float
+    vwap: float = 0.0
 
 @dataclass
 class MarketData:
-    """Container for current market data"""
     symbol: str
-    price: float
-    volume: int
-    vwap: float
     timestamp: datetime
+    price: float
     bid: float = 0.0
     ask: float = 0.0
-    price_history: List[tuple] = None  # List of (timestamp, price)
+    bid_time: Optional[datetime] = None
+    ask_time: Optional[datetime] = None
+    volume: float = 0.0
+    vwap: float = 0.0
+    
+    # History for indicators (rolling windows)
+    bars_1s: List[Bar] = field(default_factory=list)
+    bars_5s: List[Bar] = field(default_factory=list)
+    
+    # Medians (calculated externally or updated here)
+    med_vol_1s: float = 0.0
+    med_vol_5s: float = 0.0
+    med_range_5s: float = 0.0
 
-class AlertCondition(ABC):
-    """Base class for all alert conditions."""
+class StrategyLogic:
+    """
+    Centralized logic for the Premarket Shock & Confirm strategy.
+    Designed to be used by both realtime_runner and backtester.
+    """
     
-    def __init__(self, name: str):
-        self.name = name
-        self.triggered_reason = ""
-    
-    @abstractmethod
-    def check(self, data: MarketData) -> bool:
-        pass
-    
-    def get_trigger_reason(self) -> str:
-        return self.triggered_reason
-
-class PriceAboveVWAPCondition(AlertCondition):
-    """Condition: Price is above VWAP"""
-    def __init__(self):
-        super().__init__("Price Above VWAP")
-    
-    def check(self, data: MarketData) -> bool:
-        if data.vwap > 0 and data.price > data.vwap:
-            self.triggered_reason = f"Price ${data.price:.2f} > VWAP ${data.vwap:.2f}"
-            return True
-        return False
-
-class SqueezeCondition(AlertCondition):
-    """Condition: Price up X% in Y minutes"""
-    def __init__(self, pct_threshold=10.0, minutes=5):
-        super().__init__(f"Squeeze {pct_threshold}%/{minutes}m")
-        self.pct_threshold = pct_threshold
-        self.lookback_seconds = minutes * 60
-    
-    def check(self, data: MarketData) -> bool:
-        if not data.price_history or len(data.price_history) < 2:
-            return False
-            
-        now = data.timestamp
-        target_ts = now - timedelta(seconds=self.lookback_seconds)
-        
-        # Find the oldest price within the lookback window
-        old_price = None
-        for ts, p in data.price_history:
-            if ts >= target_ts:
-                old_price = p
-                break
-        
-        if old_price and old_price > 0:
-            increase = (data.price - old_price) / old_price * 100
-            if increase >= self.pct_threshold:
-                self.triggered_reason = f"Up {increase:.2f}% in {self.lookback_seconds/60:.0f}m"
+    @staticmethod
+    def is_in_window(dt: datetime) -> bool:
+        """Check if current time is within specified premarket windows."""
+        time_str = dt.strftime("%H:%M:%S")
+        for start, end in config.PREMARKET_WINDOWS:
+            if start <= time_str <= end:
                 return True
         return False
 
-def passes_spread_filter(bid: float, ask: float, price: float) -> bool:
-    """Check if the bid-ask spread is within acceptable limits."""
-    if bid <= 0 or ask <= 0 or price <= 0:
-        return True # Default to pass if data is missing
-    spread_pct = ((ask - bid) / price) * 100
-    return spread_pct <= MAX_SPREAD_PCT
-
-class AlertConditionSet:
-    """Container for conditions with AND logic for preliminary screening"""
-    def __init__(self, name: str):
-        self.name = name
-        self.conditions: List[AlertCondition] = []
-        self.triggered_reasons: List[str] = []
-    
-    def add_condition(self, condition: AlertCondition) -> 'AlertConditionSet':
-        self.conditions.append(condition)
-        return self
-    
-    def check_all(self, data: MarketData) -> bool:
-        self.triggered_reasons = []
-        
-        # 1. Mandatory Spread Filter
-        if not passes_spread_filter(data.bid, data.ask, data.price):
-            return False
+    @staticmethod
+    def check_exec_safety(data: MarketData) -> Tuple[bool, str]:
+        """EXEC_OK safety gate checks."""
+        if data.bid <= 0 or data.ask <= 0:
+            return False, "Missing bid/ask"
             
-        # 2. Check all registered conditions (AND logic)
-        for condition in self.conditions:
-            if not condition.check(data):
-                return False
-            self.triggered_reasons.append(condition.get_trigger_reason())
+        mid = (data.bid + data.ask) / 2
+        spread = data.ask - data.bid
+        spread_pct = spread / mid
         
-        return len(self.conditions) > 0
-    
-    def get_trigger_summary(self) -> str:
-        return " | ".join(self.triggered_reasons)
+        # 1) Absolute cap
+        if spread_pct > config.MAX_SPREAD_PCT:
+            return False, f"Spread too wide: {spread_pct:.2%}"
+            
+        # 2) Relative cap to the move
+        if not data.bars_5s:
+            return False, "No 5s bars for relative spread check"
+            
+        last_5s = data.bars_5s[-1]
+        ret_5s_abs = abs((last_5s.close - last_5s.open) / last_5s.open)
+        if spread_pct > config.SPREAD_REL_MULT * ret_5s_abs:
+            return False, f"Spread relative cap failed: {spread_pct:.2%} > {config.SPREAD_REL_MULT} * {ret_5s_abs:.2%}"
+            
+        # 3) Quote freshness
+        now = data.timestamp
+        if data.bid_time and data.ask_time:
+            bid_age = (now - data.bid_time).total_seconds() * 1000
+            ask_age = (now - data.ask_time).total_seconds() * 1000
+            if bid_age > config.QUOTE_STALE_MS or ask_age > config.QUOTE_STALE_MS:
+                return False, f"Stale quotes: bid {bid_age:.0f}ms, ask {ask_age:.0f}ms"
+        
+        return True, "EXEC_OK"
+
+    @staticmethod
+    def check_shock_1s(data: MarketData) -> Tuple[bool, str]:
+        """LAYER A: SHOCK DETECTOR (1 second)."""
+        if not data.bars_1s:
+            return False, "No 1s data"
+            
+        last_1s = data.bars_1s[-1]
+        ret_1s = (last_1s.close - last_1s.open) / last_1s.open
+        
+        is_shock = (ret_1s >= config.SHOCK_RET_1S and 
+                    last_1s.volume >= config.SHOCK_VOL_MULT_1S * data.med_vol_1s)
+        
+        reason = f"Shock: {ret_1s:.2%} ret, {last_1s.volume:.0f} vol (vs {data.med_vol_1s:.0f} med)"
+        return is_shock, reason
+
+    @staticmethod
+    def check_confirm_5s(data: MarketData) -> Tuple[bool, str]:
+        """LAYER B: CONTINUATION CONFIRM (5 seconds)."""
+        if not data.bars_5s:
+            return False, "No 5s data"
+            
+        last_5s = data.bars_5s[-1]
+        ret_5s = (last_5s.close - last_5s.open) / last_5s.open
+        range_5s = last_5s.high - last_5s.low
+        
+        is_confirm = (ret_5s >= config.CONFIRM_RET_5S and 
+                      last_5s.volume >= config.CONFIRM_VOL_MULT_5S * data.med_vol_5s and
+                      range_5s >= config.RANGE_MULT_5S * data.med_range_5s)
+        
+        reason = f"Confirm: {ret_5s:.2%} ret, {last_5s.volume:.0f} vol, {range_5s:.3f} range"
+        return is_confirm, reason
+
+    @staticmethod
+    def check_no_fade(data: MarketData) -> bool:
+        """NO-INSTANT-FADE FILTER."""
+        if not data.bars_5s:
+            return False
+        last_5s = data.bars_5s[-1]
+        range_5s = last_5s.high - last_5s.low
+        if range_5s == 0: return True
+        return data.price >= last_5s.high - config.NO_FADE_FRAC * range_5s
+
+    @staticmethod
+    def calculate_medians(bars: List[Bar], window_seconds: int = 120) -> Tuple[float, float, float]:
+        """Calculate rolling medians for volume and range."""
+        if not bars:
+            return 0.0, 0.0, 0.0
+            
+        # Filter bars within the window
+        now = bars[-1].timestamp
+        cutoff = now - timedelta(seconds=window_seconds)
+        window_bars = [b for b in bars if b.timestamp >= cutoff]
+        
+        if not window_bars:
+            return 0.0, 0.0, 0.0
+            
+        vols = [b.volume for b in window_bars]
+        ranges = [b.high - b.low for b in window_bars]
+        
+        return float(np.median(vols)), float(np.median(ranges)), 0.0 # Third value reserved if needed
+
+    @staticmethod
+    def check_exit(data: MarketData, entry_price: float, stop_price: float, entry_time: datetime, R: float) -> Tuple[bool, str]:
+        """Evaluate exit conditions continuously."""
+        # 1) HARD STOP
+        if data.price <= stop_price:
+            return True, "STOP"
+            
+        # Optional: FAIL_ACCEL (sudden 1s drop)
+        if data.bars_1s:
+            last_1s = data.bars_1s[-1]
+            ret_1s = (last_1s.close - last_1s.open) / last_1s.open
+            if ret_1s <= -config.FAIL_RET_1S:
+                return True, "FAIL_ACCEL"
+
+        # 2) WEAKNESS EXIT
+        if len(data.bars_5s) >= 2:
+            curr_5s = data.bars_5s[-1]
+            prev_5s = data.bars_5s[-2]
+            if curr_5s.close < curr_5s.open and curr_5s.close < prev_5s.low:
+                return True, "WEAKNESS"
+
+        # 3) TAKE PROFIT
+        if data.price >= entry_price + config.TP_R_MULT * R:
+            return True, "TAKE_PROFIT"
+
+        # 4) TIME STOP
+        elapsed = (data.timestamp - entry_time).total_seconds()
+        if elapsed >= config.TIME_STOP_SECONDS:
+            unrealized_pnl_r = (data.price - entry_price) / R
+            if unrealized_pnl_r < config.MIN_PNL_AT_TIME:
+                return True, "TIME_STOP"
+
+        return False, ""
