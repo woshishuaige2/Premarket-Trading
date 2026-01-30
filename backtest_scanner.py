@@ -32,15 +32,18 @@ class BacktestEngine:
         """Fetch 1s and 5s bars from TWS for a specific date."""
         # TWS expects "YYYYMMDD HH:MM:SS"
         target_date = datetime.strptime(date_str, "%Y-%m-%d")
-        # End of premarket window (approx 9:30 AM)
+        # End of premarket window (9:30 AM)
         end_dt = target_date.replace(hour=9, minute=30, second=0)
         
+        # Duration for 5s bars: 14400 S = 4 hours
         print(f"[BACKTEST] Fetching 5s bars for {self.symbol} on {date_str}...")
-        bars_5s_raw = tws_app.fetch_historical_bars(self.symbol, end_dt, duration="4 H", bar_size="5 secs")
+        bars_5s_raw = tws_app.fetch_historical_bars(self.symbol, end_dt, duration="14400 S", bar_size="5 secs")
         
+        # Duration for 1s bars: 7200 S = 2 hours
+        # IBKR has strict limits on 1s duration requests (often max 1800s or 3600s).
+        # We try 3600 S first for the most recent premarket hour.
         print(f"[BACKTEST] Fetching 1s bars for {self.symbol} on {date_str}...")
-        # Note: TWS might limit 1s data duration. We fetch enough for the premarket windows.
-        bars_1s_raw = tws_app.fetch_historical_bars(self.symbol, end_dt, duration="2 H", bar_size="1 secs")
+        bars_1s_raw = tws_app.fetch_historical_bars(self.symbol, end_dt, duration="3600 S", bar_size="1 secs")
         
         def convert_bars(raw_list):
             converted = []
