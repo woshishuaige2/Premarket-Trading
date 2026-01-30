@@ -73,4 +73,4 @@ ARM_TIMEOUT_SECONDS = 3.0
 # =============================================================================
 INVESTMENT_PER_TRADE = 1000.0
 ACCOUNT_NUMBER = "DUO200259"     # Replace with actual IBKR account
-WATCHLIST = ["MOVE", "BNAI", "DRCT", "THH", "REVB", "MAXN"]
+WATCHLIST = ["TWNP", "PMN"]

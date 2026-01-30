@@ -1,0 +1,8 @@
+2026-01-30 09:21:22,284 [INFO] could not connect
+2026-01-30 09:21:22,284 [INFO] disconnecting
+2026-01-30 09:21:22,284 [INFO] ANSWER connectionClosed {}
+2026-01-30 09:22:40,773 [INFO] sent startApi
+2026-01-30 09:22:40,773 [INFO] REQUEST startApi {}
+2026-01-30 09:22:40,774 [INFO] SENDING startApi b'\x00\x00\x00\n71\x002\x00777\x00\x00'
+2026-01-30 09:22:40,774 [INFO] ANSWER connectAck {}
+2026-01-30 09:22:40,815 [INFO] ANSWER managedAccounts {'accountsList': 'DUO200259'}

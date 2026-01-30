@@ -1,0 +1,103 @@
+2026-01-29 23:27:10.513119: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:hfarm
+2026-01-29 23:27:10.514119: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:eufarmnj
+2026-01-29 23:27:10.514119: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:cashfarm
+2026-01-29 23:27:10.514119: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:usfuture
+2026-01-29 23:27:10.515117: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:usopt.nj
+2026-01-29 23:27:10.515117: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:jfarm
+2026-01-29 23:27:10.515117: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:usfarm.nj
+2026-01-29 23:27:10.516117: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:eufarm
+2026-01-29 23:27:10.516117: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:usfarm
+2026-01-29 23:27:10.516117: ReqId=-1, Code=2106, Msg=HMDS data farm connection is OK:euhmds
+2026-01-29 23:27:10.517118: ReqId=-1, Code=2106, Msg=HMDS data farm connection is OK:fundfarm
+2026-01-29 23:27:10.517118: ReqId=-1, Code=2106, Msg=HMDS data farm connection is OK:ushmds
+2026-01-29 23:27:10.517118: ReqId=-1, Code=2158, Msg=Sec-def data farm connection is OK:secdefnj
+2026-01-29 23:27:10.592238: ReqId=2000, Code=321, Msg=Error validating request.-'bL' : cause - When specifying a unit, historical data request duration format is integer{SPACE}unit (S|D|W|M|Y).
+2026-01-29 23:27:40.655997: ReqId=2001, Code=321, Msg=Error validating request.-'bL' : cause - When specifying a unit, historical data request duration format is integer{SPACE}unit (S|D|W|M|Y).
+2026-01-29 23:28:10.764508: ReqId=2002, Code=321, Msg=Error validating request.-'bL' : cause - When specifying a unit, historical data request duration format is integer{SPACE}unit (S|D|W|M|Y).
+2026-01-29 23:28:40.856338: ReqId=2003, Code=321, Msg=Error validating request.-'bL' : cause - When specifying a unit, historical data request duration format is integer{SPACE}unit (S|D|W|M|Y).
+2026-01-30 09:21:22.283816: ReqId=-1, Code=502, Msg=Couldn't connect to TWS. Confirm that "Enable ActiveX and Socket EClients" 
+is enabled and connection port is the same as "Socket Port" on the 
+TWS "Edit->Global Configuration...->API->Settings" menu. Live Trading ports: 
+TWS: 7496; IB Gateway: 4001. Simulated Trading ports for new installations 
+of version 954.1 or newer:  TWS: 7497; IB Gateway: 4002
+2026-01-30 09:22:40.870444: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:hfarm
+2026-01-30 09:22:40.871444: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:eufarmnj
+2026-01-30 09:22:40.871444: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:cashfarm
+2026-01-30 09:22:40.872446: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:usfuture
+2026-01-30 09:22:40.873949: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:usopt.nj
+2026-01-30 09:22:40.873949: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:jfarm
+2026-01-30 09:22:40.873949: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:usfarm.nj
+2026-01-30 09:22:40.873949: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:eufarm
+2026-01-30 09:22:40.874954: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:usfarm
+2026-01-30 09:22:40.874954: ReqId=-1, Code=2106, Msg=HMDS data farm connection is OK:euhmds
+2026-01-30 09:22:40.874954: ReqId=-1, Code=2106, Msg=HMDS data farm connection is OK:fundfarm
+2026-01-30 09:22:40.874954: ReqId=-1, Code=2106, Msg=HMDS data farm connection is OK:ushmds
+2026-01-30 09:22:40.875954: ReqId=-1, Code=2158, Msg=Sec-def data farm connection is OK:secdefnj
+2026-01-30 09:25:08.941885: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:hfarm
+2026-01-30 09:25:08.942885: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:eufarmnj
+2026-01-30 09:25:08.944390: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:cashfarm
+2026-01-30 09:25:08.946396: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:usfuture
+2026-01-30 09:25:08.947394: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:usopt.nj
+2026-01-30 09:25:08.947394: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:jfarm
+2026-01-30 09:25:08.947394: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:usfarm.nj
+2026-01-30 09:25:08.947394: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:eufarm
+2026-01-30 09:25:08.948395: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:usfarm
+2026-01-30 09:25:08.950394: ReqId=-1, Code=2106, Msg=HMDS data farm connection is OK:euhmds
+2026-01-30 09:25:08.950394: ReqId=-1, Code=2106, Msg=HMDS data farm connection is OK:fundfarm
+2026-01-30 09:25:08.951394: ReqId=-1, Code=2106, Msg=HMDS data farm connection is OK:ushmds
+2026-01-30 09:25:08.951394: ReqId=-1, Code=2158, Msg=Sec-def data farm connection is OK:secdefnj
+2026-01-30 09:25:09.085618: ReqId=2000, Code=321, Msg=Error validating request.-'bL' : cause - When specifying a unit, historical data request duration format is integer{SPACE}unit (S|D|W|M|Y).
+2026-01-30 09:25:39.249568: ReqId=2001, Code=321, Msg=Error validating request.-'bL' : cause - When specifying a unit, historical data request duration format is integer{SPACE}unit (S|D|W|M|Y).
+2026-01-30 09:26:02.085062: ReqId=-1, Code=2108, Msg=Market data farm connection is inactive but should be available upon demand.hfarm
+2026-01-30 09:26:02.086062: ReqId=-1, Code=2108, Msg=Market data farm connection is inactive but should be available upon demand.hfarm
+2026-01-30 09:26:02.095059: ReqId=-1, Code=2108, Msg=Market data farm connection is inactive but should be available upon demand.eufarmnj
+2026-01-30 09:26:02.097068: ReqId=-1, Code=2108, Msg=Market data farm connection is inactive but should be available upon demand.eufarmnj
+2026-01-30 09:26:02.099067: ReqId=-1, Code=2108, Msg=Market data farm connection is inactive but should be available upon demand.usfuture
+2026-01-30 09:26:02.100065: ReqId=-1, Code=2108, Msg=Market data farm connection is inactive but should be available upon demand.usfuture
+2026-01-30 09:26:02.100065: ReqId=-1, Code=2108, Msg=Market data farm connection is inactive but should be available upon demand.jfarm
+2026-01-30 09:26:02.103066: ReqId=-1, Code=2108, Msg=Market data farm connection is inactive but should be available upon demand.jfarm
+2026-01-30 09:26:09.363967: ReqId=2002, Code=321, Msg=Error validating request.-'bL' : cause - When specifying a unit, historical data request duration format is integer{SPACE}unit (S|D|W|M|Y).
+2026-01-30 09:26:39.474115: ReqId=2003, Code=321, Msg=Error validating request.-'bL' : cause - When specifying a unit, historical data request duration format is integer{SPACE}unit (S|D|W|M|Y).
+2026-01-30 09:27:09.597211: ReqId=2004, Code=321, Msg=Error validating request.-'bL' : cause - When specifying a unit, historical data request duration format is integer{SPACE}unit (S|D|W|M|Y).
+2026-01-30 09:27:39.707251: ReqId=2005, Code=321, Msg=Error validating request.-'bL' : cause - When specifying a unit, historical data request duration format is integer{SPACE}unit (S|D|W|M|Y).
+2026-01-30 09:28:09.818524: ReqId=2006, Code=321, Msg=Error validating request.-'bL' : cause - When specifying a unit, historical data request duration format is integer{SPACE}unit (S|D|W|M|Y).
+2026-01-30 09:28:39.927784: ReqId=2007, Code=321, Msg=Error validating request.-'bL' : cause - When specifying a unit, historical data request duration format is integer{SPACE}unit (S|D|W|M|Y).
+2026-01-30 09:29:10.045889: ReqId=2008, Code=321, Msg=Error validating request.-'bL' : cause - When specifying a unit, historical data request duration format is integer{SPACE}unit (S|D|W|M|Y).
+2026-01-30 09:29:40.168891: ReqId=2009, Code=321, Msg=Error validating request.-'bL' : cause - When specifying a unit, historical data request duration format is integer{SPACE}unit (S|D|W|M|Y).
+2026-01-30 09:30:10.400386: ReqId=2010, Code=321, Msg=Error validating request.-'bL' : cause - When specifying a unit, historical data request duration format is integer{SPACE}unit (S|D|W|M|Y).
+2026-01-30 09:30:40.631880: ReqId=2011, Code=321, Msg=Error validating request.-'bL' : cause - When specifying a unit, historical data request duration format is integer{SPACE}unit (S|D|W|M|Y).
+2026-01-30 09:36:22.791579: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:cashfarm
+2026-01-30 09:36:22.792581: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:usopt.nj
+2026-01-30 09:36:22.793577: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:usfarm.nj
+2026-01-30 09:36:22.793577: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:eufarm
+2026-01-30 09:36:22.793577: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:usfarm
+2026-01-30 09:36:22.793577: ReqId=-1, Code=2106, Msg=HMDS data farm connection is OK:euhmds
+2026-01-30 09:36:22.793577: ReqId=-1, Code=2106, Msg=HMDS data farm connection is OK:fundfarm
+2026-01-30 09:36:22.793577: ReqId=-1, Code=2106, Msg=HMDS data farm connection is OK:ushmds
+2026-01-30 09:36:22.794578: ReqId=-1, Code=2158, Msg=Sec-def data farm connection is OK:secdefnj
+2026-01-30 09:36:23.017599: ReqId=2001, Code=2176, Msg=Warning: Your API version does not support fractional share size rules. Please upgrade to a minimum version 163. Trimmed value 20.1 to 20
+2026-01-30 09:36:23.318748: ReqId=2003, Code=2176, Msg=Warning: Your API version does not support fractional share size rules. Please upgrade to a minimum version 163. Trimmed value 139.34 to 139
+2026-01-30 09:41:17.410479: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:cashfarm
+2026-01-30 09:41:17.411477: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:usopt.nj
+2026-01-30 09:41:17.411477: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:usfarm.nj
+2026-01-30 09:41:17.412478: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:eufarm
+2026-01-30 09:41:17.412478: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:usfarm
+2026-01-30 09:41:17.412478: ReqId=-1, Code=2106, Msg=HMDS data farm connection is OK:euhmds
+2026-01-30 09:41:17.412478: ReqId=-1, Code=2106, Msg=HMDS data farm connection is OK:fundfarm
+2026-01-30 09:41:17.412478: ReqId=-1, Code=2106, Msg=HMDS data farm connection is OK:ushmds
+2026-01-30 09:41:17.413487: ReqId=-1, Code=2158, Msg=Sec-def data farm connection is OK:secdefnj
+2026-01-30 09:41:17.515444: ReqId=2000, Code=321, Msg=Error validating request.-'bL' : cause - When specifying a unit, historical data request duration format is integer{SPACE}unit (S|D|W|M|Y).
+2026-01-30 09:41:47.631381: ReqId=2001, Code=321, Msg=Error validating request.-'bL' : cause - When specifying a unit, historical data request duration format is integer{SPACE}unit (S|D|W|M|Y).
+2026-01-30 09:42:17.721025: ReqId=2002, Code=321, Msg=Error validating request.-'bL' : cause - When specifying a unit, historical data request duration format is integer{SPACE}unit (S|D|W|M|Y).
+2026-01-30 09:42:47.831578: ReqId=2003, Code=321, Msg=Error validating request.-'bL' : cause - When specifying a unit, historical data request duration format is integer{SPACE}unit (S|D|W|M|Y).
+2026-01-30 09:48:08.083316: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:cashfarm
+2026-01-30 09:48:08.084318: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:usopt.nj
+2026-01-30 09:48:08.084318: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:usfarm.nj
+2026-01-30 09:48:08.084318: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:eufarm
+2026-01-30 09:48:08.085320: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:usfarm
+2026-01-30 09:48:08.085320: ReqId=-1, Code=2106, Msg=HMDS data farm connection is OK:euhmds
+2026-01-30 09:48:08.085320: ReqId=-1, Code=2106, Msg=HMDS data farm connection is OK:fundfarm
+2026-01-30 09:48:08.085320: ReqId=-1, Code=2106, Msg=HMDS data farm connection is OK:ushmds
+2026-01-30 09:48:08.085320: ReqId=-1, Code=2158, Msg=Sec-def data farm connection is OK:secdefnj
+2026-01-30 09:48:08.409305: ReqId=2001, Code=2176, Msg=Warning: Your API version does not support fractional share size rules. Please upgrade to a minimum version 163. Trimmed value 20.1 to 20
+2026-01-30 09:48:08.686655: ReqId=2003, Code=2176, Msg=Warning: Your API version does not support fractional share size rules. Please upgrade to a minimum version 163. Trimmed value 139.34 to 139
