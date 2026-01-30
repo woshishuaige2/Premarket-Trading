@@ -122,7 +122,8 @@ class ExecutionEngine:
                 return False
 
             limit_price = round(ask_price + config.ENTRY_OFFSET, 2)
-            shares = int(config.INVESTMENT_PER_TRADE / limit_price)
+            # Ensure integer shares for compatibility with older API versions
+            shares = int(config.INVESTMENT_PER_TRADE // limit_price)
             if shares <= 0: return False
             
             order_id = self.tws_app.next_order_id

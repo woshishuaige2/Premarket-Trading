@@ -1,8 +1,8 @@
 """
-Real-time Runner for Premarket Strategy
-Handles data aggregation, state machine, and live execution.
+Real-time Runner for Premarket Strategy with Terminal Dashboard
 """
 import time
+import os
 import logging
 import threading
 from datetime import datetime, timedelta
@@ -13,13 +13,12 @@ from conditions import MarketData, Bar, StrategyLogic
 from execution_engine import ExecutionEngine
 from tws_data_fetcher import create_tws_data_app
 
-# Configure logging
+# Configure logging to file only to keep terminal clean for dashboard
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s [%(levelname)s] %(message)s',
-    handlers=[logging.FileHandler("strategy.log"), logging.StreamHandler()]
+    handlers=[logging.FileHandler("strategy.log")]
 )
-# Suppress verbose IBKR internal logging
 logging.getLogger('ibapi').setLevel(logging.WARNING)
 
 class SymbolMonitor:
@@ -28,27 +27,19 @@ class SymbolMonitor:
         self.tws_app = tws_app
         self.executor = executor
         
-        # Data buffers
-        self.ticks = deque(maxlen=1000)
-        self.bars_1s = deque(maxlen=300) # 5 mins of 1s bars
-        self.bars_5s = deque(maxlen=120) # 10 mins of 5s bars
+        self.bars_1s = deque(maxlen=300)
+        self.bars_5s = deque(maxlen=120)
         
-        # Current bar builders
         self.curr_1s_data = []
         self.curr_5s_data = []
         self.last_1s_ts = None
         self.last_5s_ts = None
         
-        # State Machine
-        self.state = "IDLE" # IDLE, ARMED, IN_TRADE
+        self.state = "IDLE"
         self.arm_time = None
+        self.last_reason = "--"
         
-        # Market Data Object for conditions
-        self.market_data = MarketData(
-            symbol=symbol,
-            timestamp=datetime.now(),
-            price=0.0
-        )
+        self.market_data = MarketData(symbol=symbol, timestamp=datetime.now(), price=0.0)
 
     def on_tick(self, symbol, price, size, vwap, timestamp, bid, ask):
         self.market_data.timestamp = timestamp
@@ -57,17 +48,15 @@ class SymbolMonitor:
         self.market_data.vwap = vwap
         self.market_data.bid = bid
         self.market_data.ask = ask
-        self.market_data.bid_time = timestamp # Approximation
+        self.market_data.bid_time = timestamp
         self.market_data.ask_time = timestamp
         
         self._update_bars(price, size, vwap, timestamp)
         self._process_state_machine()
 
     def _update_bars(self, price, size, vwap, ts):
-        # 1s Bar Logic
         ts_1s = ts.replace(microsecond=0)
         if self.last_1s_ts and ts_1s > self.last_1s_ts:
-            # Close previous 1s bar
             if self.curr_1s_data:
                 prices = [d[0] for d in self.curr_1s_data]
                 vols = [d[1] for d in self.curr_1s_data]
@@ -77,10 +66,8 @@ class SymbolMonitor:
         self.last_1s_ts = ts_1s
         self.curr_1s_data.append((price, size))
 
-        # 5s Bar Logic
         ts_5s = ts.replace(second=(ts.second // 5) * 5, microsecond=0)
         if self.last_5s_ts and ts_5s > self.last_5s_ts:
-            # Close previous 5s bar
             if self.curr_5s_data:
                 prices = [d[0] for d in self.curr_5s_data]
                 vols = [d[1] for d in self.curr_5s_data]
@@ -91,12 +78,10 @@ class SymbolMonitor:
         self.curr_5s_data.append((price, size))
 
     def _process_state_machine(self):
-        # Update MarketData for logic
         self.market_data.bars_1s = list(self.bars_1s)
         self.market_data.bars_5s = list(self.bars_5s)
         
-        # Calculate Medians
-        mv1, mr1, _ = StrategyLogic.calculate_medians(self.market_data.bars_1s, 120)
+        mv1, _, _ = StrategyLogic.calculate_medians(self.market_data.bars_1s, 120)
         mv5, mr5, _ = StrategyLogic.calculate_medians(self.market_data.bars_5s, 120)
         self.market_data.med_vol_1s = mv1
         self.market_data.med_vol_5s = mv5
@@ -109,18 +94,18 @@ class SymbolMonitor:
             if self.state == "ARMED":
                 if (datetime.now() - self.arm_time).total_seconds() > config.ARM_TIMEOUT_SECONDS:
                     self.state = "IDLE"
-                    logging.info(f"[{self.symbol}] ARM TIMEOUT -> IDLE")
-            else:
+                    self.last_reason = "ARM_TIMEOUT"
+            elif self.state != "SUBMITTING":
                 self.state = "IDLE"
 
-        # Logic per state
         if self.state == "IDLE":
             if StrategyLogic.is_in_window(self.market_data.timestamp):
                 shock_ok, reason = StrategyLogic.check_shock_1s(self.market_data)
                 if shock_ok:
                     self.state = "ARMED"
                     self.arm_time = datetime.now()
-                    logging.info(f"[{self.symbol}] SHOCK DETECTED -> ARMED. Reason: {reason}")
+                    self.last_reason = "SHOCK"
+                    logging.info(f"[{self.symbol}] SHOCK: {reason}")
 
         elif self.state == "ARMED":
             confirm_ok, c_reason = StrategyLogic.check_confirm_5s(self.market_data)
@@ -128,12 +113,9 @@ class SymbolMonitor:
             no_fade = StrategyLogic.check_no_fade(self.market_data)
             
             if confirm_ok and safety_ok and no_fade:
-                # Calculate R and stop
                 last_5s = self.market_data.bars_5s[-1]
                 med_range = self.market_data.med_range_5s
-                stop_dist = max(self.market_data.ask - self.market_data.bid, config.STOP_RANGE_MULT * med_range)
-                # Or percent stop
-                stop_dist = max(stop_dist, self.market_data.price * config.STOP_PCT)
+                stop_dist = max(self.market_data.ask - self.market_data.bid, config.STOP_RANGE_MULT * med_range, self.market_data.price * config.STOP_PCT)
                 
                 entry_price = self.market_data.ask
                 stop_price = entry_price - stop_dist
@@ -141,24 +123,76 @@ class SymbolMonitor:
                 
                 success = self.executor.execute_entry(self.symbol, entry_price, stop_price, R)
                 if success:
-                    logging.info(f"[{self.symbol}] ALL CONDITIONS MET -> ENTRY SUBMITTED. {c_reason}")
                     self.state = "SUBMITTING"
+                    self.last_reason = "CONFIRMED"
+                    logging.info(f"[{self.symbol}] ENTRY SUBMITTED: {c_reason}")
 
         elif self.state == "IN_TRADE":
             pos = self.executor.get_position(self.symbol)
             exit_triggered, reason = StrategyLogic.check_exit(
-                self.market_data, 
-                pos['actual_entry_price'], 
-                pos['stop_price'], 
-                pos['entry_time'], 
-                pos['R']
+                self.market_data, pos['actual_entry_price'], pos['stop_price'], pos['entry_time'], pos['R']
             )
             if exit_triggered:
                 self.executor.execute_exit(self.symbol, self.market_data.price, reason)
                 self.state = "IDLE"
+                self.last_reason = f"EXIT_{reason}"
+
+def draw_dashboard(monitors: Dict[str, SymbolMonitor], executor: ExecutionEngine):
+    while True:
+        try:
+            os.system('cls' if os.name == 'nt' else 'clear')
+            now_str = datetime.now().strftime("%H:%M:%S")
+            print("="*100)
+            print(f" PREMARKET SHOCK & CONFIRM STRATEGY | TIME: {now_str}")
+            print("="*100)
+            
+            # STAGE 1: MONITORING
+            print(f"{'SYMBOL':<8} | {'PRICE':<8} | {'VWAP':<8} | {'BID/ASK':<15} | {'STATE':<10} | {'LAST EVENT'}")
+            print("-" * 100)
+            for sym in config.WATCHLIST:
+                m = monitors.get(sym)
+                if not m: continue
+                md = m.market_data
+                ba = f"{md.bid:.2f}/{md.ask:.2f}"
+                print(f"{sym:<8} | {md.price:<8.2f} | {md.vwap:<8.2f} | {ba:<15} | {m.state:<10} | {m.last_reason}")
+            
+            # STAGE 2: ACTIVE POSITIONS
+            print("\n" + "="*100)
+            print(" ACTIVE POSITIONS")
+            print("="*100)
+            print(f"{'SYMBOL':<8} | {'STATUS':<10} | {'ENTRY':<8} | {'TP':<8} | {'SL':<8} | {'SHARES':<6} | {'PNL':<8} | {'TIME'}")
+            print("-" * 100)
+            active_any = False
+            for sym, pos in executor.positions.items():
+                active_any = True
+                pnl = (monitors[sym].market_data.price - pos.get('actual_entry_price', pos['entry_price'])) * pos.get('filled_shares', pos['shares'])
+                tp = pos.get('actual_entry_price', pos['entry_price']) + config.TP_R_MULT * pos['R']
+                time_in = (datetime.now() - pos['entry_time']).total_seconds()
+                print(f"{sym:<8} | {pos['status']:<10} | {pos.get('actual_entry_price', 0):<8.2f} | {tp:<8.2f} | {pos['stop_price']:<8.2f} | {pos.get('filled_shares', 0):<6} | {pnl:<8.2f} | {int(time_in)}s")
+            if not active_any:
+                print(" No active positions.")
+
+            # STAGE 3: TRADE HISTORY
+            print("\n" + "="*100)
+            print(" TRADE HISTORY")
+            print("="*100)
+            print(f"{'SYMBOL':<8} | {'RESULT':<8} | {'ENTRY':<8} | {'EXIT':<8} | {'PNL':<8} | {'REASON':<12} | {'TIME'}")
+            print("-" * 100)
+            if not executor.trade_history:
+                print(" No completed trades in this session.")
+            else:
+                for t in executor.trade_history[-5:]: # Show last 5
+                    res = "WIN" if t['pnl'] > 0 else "LOSS"
+                    print(f"{t['symbol']:<8} | {res:<8} | {t['entry_price']:<8.2f} | {t['exit_price']:<8.2f} | {t['pnl']:<8.2f} | {t['exit_reason']:<12} | {t['time'].strftime('%H:%M:%S')}")
+            
+            print("="*100)
+            time.sleep(1)
+        except Exception as e:
+            logging.error(f"Dashboard error: {e}")
+            time.sleep(1)
 
 def run():
-    print("[INIT] Starting Premarket Strategy Runner...")
+    logging.info("Starting Premarket Strategy Runner...")
     tws_app = create_tws_data_app(host="127.0.0.1", port=7497, client_id=777)
     if not tws_app:
         print("[ERROR] Could not connect to TWS.")
@@ -173,12 +207,15 @@ def run():
     for symbol in config.WATCHLIST:
         tws_app.subscribe_market_data(symbol, create_callback(symbol))
 
+    # Start dashboard in a separate thread
+    dashboard_thread = threading.Thread(target=draw_dashboard, args=(monitors, executor), daemon=True)
+    dashboard_thread.start()
+
     try:
         while True:
-            # UI or Heartbeat could go here
             time.sleep(1)
     except KeyboardInterrupt:
-        print("[INFO] Stopping...")
+        print("\n[INFO] Stopping...")
     finally:
         tws_app.disconnect()
 
