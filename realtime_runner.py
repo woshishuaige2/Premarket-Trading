@@ -19,6 +19,8 @@ logging.basicConfig(
     format='%(asctime)s [%(levelname)s] %(message)s',
     handlers=[logging.FileHandler("strategy.log"), logging.StreamHandler()]
 )
+# Suppress verbose IBKR internal logging
+logging.getLogger('ibapi').setLevel(logging.WARNING)
 
 class SymbolMonitor:
     def __init__(self, symbol: str, tws_app, executor: ExecutionEngine):
@@ -44,7 +46,8 @@ class SymbolMonitor:
         # Market Data Object for conditions
         self.market_data = MarketData(
             symbol=symbol,
-            timestamp=datetime.now()
+            timestamp=datetime.now(),
+            price=0.0
         )
 
     def on_tick(self, symbol, price, size, vwap, timestamp, bid, ask):

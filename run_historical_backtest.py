@@ -11,6 +11,8 @@ import strategy_config as config
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(message)s')
+# Suppress verbose IBKR internal logging
+logging.getLogger('ibapi').setLevel(logging.WARNING)
 
 def main():
     parser = argparse.ArgumentParser(description='Premarket Strategy Historical Backtester')
