@@ -13,7 +13,7 @@ class BacktestEngine:
     def __init__(self, symbol: str, initial_capital: float = 10000.0):
         self.symbol = symbol
         self.capital = initial_capital
-        self.market_data = MarketData(symbol=symbol, timestamp=datetime.now())
+        self.market_data = MarketData(symbol=symbol, timestamp=datetime.now(), price=0.0)
         
         # History for backtest
         self.full_history: List[Bar] = []
@@ -27,6 +27,30 @@ class BacktestEngine:
         self.R = 0.0
         self.shares = 0
         self.arm_time = None
+
+    def load_tws_data(self, tws_app, date_str: str) -> Tuple[List[Bar], List[Bar]]:
+        """Fetch 1s and 5s bars from TWS for a specific date."""
+        # TWS expects "YYYYMMDD HH:MM:SS"
+        target_date = datetime.strptime(date_str, "%Y-%m-%d")
+        # End of premarket window (approx 9:30 AM)
+        end_dt = target_date.replace(hour=9, minute=30, second=0)
+        
+        print(f"[BACKTEST] Fetching 5s bars for {self.symbol} on {date_str}...")
+        bars_5s_raw = tws_app.fetch_historical_bars(self.symbol, end_dt, duration="4 H", bar_size="5 secs")
+        
+        print(f"[BACKTEST] Fetching 1s bars for {self.symbol} on {date_str}...")
+        # Note: TWS might limit 1s data duration. We fetch enough for the premarket windows.
+        bars_1s_raw = tws_app.fetch_historical_bars(self.symbol, end_dt, duration="2 H", bar_size="1 secs")
+        
+        def convert_bars(raw_list):
+            converted = []
+            for b in raw_list:
+                # b['date'] format: '20260129  07:00:00'
+                ts = datetime.strptime(b['date'], "%Y%m%d  %H:%M:%S")
+                converted.append(Bar(ts, b['open'], b['high'], b['low'], b['close'], b['volume'], b['average']))
+            return converted
+
+        return convert_bars(bars_1s_raw), convert_bars(bars_5s_raw)
 
     def add_bar_1s(self, bar: Bar):
         self.market_data.timestamp = bar.timestamp
