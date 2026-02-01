@@ -25,18 +25,18 @@ QUOTE_STALE_MS = 1000           # Max age of bid/ask quote in ms
 # LAYER A: SHOCK DETECTOR (1-second OR 2-second alternative)
 # =============================================================================
 # Primary: Single 1-second bar shock
-SHOCK_RET_1S = 0.02             # +2% return in a single 1s bar
+SHOCK_RET_1S = 0.02             # +3% return in a single 1s bar
 SHOCK_VOL_MULT_1S = 3.0         # vol_1s >= 3x median_vol_1s (120s lookback)
 
 # Alternative: 2-second combined shock (compensates for bar timing differences)
-SHOCK_RET_2S = 0.03             # +3% return over last 2 consecutive 1s bars
+SHOCK_RET_2S = 0.03             # +5% return over last 2 consecutive 1s bars
 SHOCK_VOL_MULT_2S = 3.0         # combined vol over 2s >= 3x median_vol_1s
 
 # =============================================================================
 # LAYER B: CONTINUATION CONFIRM (5 seconds)
 # =============================================================================
 CONFIRM_RET_5S = 0.04           # +4% to +8%
-CONFIRM_VOL_MULT_5S = 2.0       # vol_5s >= 2x median_vol_5s, use 120 second rolling lookback window
+CONFIRM_VOL_MULT_5S = 5.0       # vol_5s >= 2x median_vol_5s, use 120 second rolling lookback window
 RANGE_MULT_5S = 2.0             # range_5s >= 2x median_range_5s
 
 # =============================================================================
@@ -54,9 +54,9 @@ PARTIAL_FILL_RULE = "CANCEL"    # "CANCEL" (Option A) or "REPRICE" (Option B)
 # =============================================================================
 # RISK MANAGEMENT
 # =============================================================================
-STOP_PCT = 0.015                # 0.8% to 2.0% (0.015 = 1.5%)
+STOP_PCT = 0.05                # 0.8% to 2.0% (0.015 = 1.5%)
 STOP_RANGE_MULT = 0.5           # Multiplier for median_range_5s
-TP_R_MULT = 1.0                 # Target profit as multiple of R
+TP_R_MULT = 1.5                 # Target profit as multiple of R
 FAIL_RET_1S = 0.02              # -2% sudden drop exit
 
 # TIME STOP
@@ -77,7 +77,7 @@ ARM_TIMEOUT_SECONDS = 3.0
 # =============================================================================
 # TRADING PARAMETERS
 # =============================================================================
-INVESTMENT_PER_TRADE = 200.0
+INVESTMENT_PER_TRADE = 500.0
 ACCOUNT_NUMBER = "DUO200259"     # Replace with actual IBKR account
 WATCHLIST = ["TWNP", "PMN"]
 
@@ -89,6 +89,11 @@ COMMISSION_MIN = 1.0            # Minimum commission per order
 COMMISSION_PERCENT_LOW = 0.005  # 0.5% of trade value for stocks < $1
 
 # =============================================================================
+# BACKTEST DATA SETTINGS
+# =============================================================================
+BACKTEST_1S_WHAT_TO_SHOW = "TRADES"  # Use TRADES for accurate volume data (MIDPOINT has no volume)
+
+# =============================================================================
 # DEBUG SETTINGS
 # =============================================================================
-DEBUG_TIME_WINDOW = "08:01"        # Set to "HH:MM" (e.g., "09:16") to enable detailed debug output for that minute, None to disable
+DEBUG_TIME_WINDOW = "08:00"        # Set to "HH:MM" (e.g., "09:16") to enable detailed debug output for that minute, None to disable

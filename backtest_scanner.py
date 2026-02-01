@@ -34,7 +34,7 @@ class BacktestEngine:
         # TWS expects "YYYYMMDD HH:MM:SS"
         target_date = datetime.strptime(date_str, "%Y-%m-%d")
         # Use 9:30 AM to align with the end of premarket
-        end_dt = target_date.replace(hour=8, minute=00, second=0)
+        end_dt = target_date.replace(hour=8, minute=30, second=0)
         
         # Use exact format from Scanner-Alert: "1 D" and "YYYYMMDD HH:MM:SS US/Eastern"
         print(f"[BACKTEST] Requesting 5s bars for {self.symbol} on {date_str}...")
@@ -48,11 +48,24 @@ class BacktestEngine:
         for i in range(3):
             chunk_end = end_dt - timedelta(seconds=i * 1800)
             print(f"  > Fetching 1s chunk {i+1}/3 ending at {chunk_end.strftime('%H:%M:%S')}...")
-            chunk_data = tws_app.fetch_historical_bars(self.symbol, chunk_end, duration="1800 S", bar_size="1 secs")
-            if chunk_data:
-                bars_1s_raw.extend(chunk_data)
+            try:
+                chunk_data = tws_app.fetch_historical_bars(
+                    self.symbol,
+                    chunk_end,
+                    duration="1800 S",
+                    bar_size="1 secs",
+                    what_to_show=config.BACKTEST_1S_WHAT_TO_SHOW
+                )
+                if chunk_data and len(chunk_data) > 0:
+                    bars_1s_raw.extend(chunk_data)
+                    print(f"     Got {len(chunk_data)} bars")
+                else:
+                    print(f"     No data returned (empty or None)")
+            except Exception as e:
+                print(f"     Error fetching chunk: {e}")
+                continue
             # Small sleep to avoid pacing violations
-            time.sleep(1)
+            time.sleep(0.5)
         
         # Sort and remove duplicates if any
         bars_1s_raw.sort(key=lambda x: x['date'])
