@@ -106,3 +106,316 @@ is enabled and connection port is the same as "Socket Port" on the
 TWS "Edit->Global Configuration...->API->Settings" menu. Live Trading ports: 
 TWS: 7496; IB Gateway: 4001. Simulated Trading ports for new installations 
 of version 954.1 or newer:  TWS: 7497; IB Gateway: 4002
+2026-02-01 00:04:42.711960: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:cashfarm
+2026-02-01 00:04:42.712962: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:usopt.nj
+2026-02-01 00:04:42.713960: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:usfarm.nj
+2026-02-01 00:04:42.713960: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:eufarm
+2026-02-01 00:04:42.714465: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:usfarm
+2026-02-01 00:04:42.714465: ReqId=-1, Code=2106, Msg=HMDS data farm connection is OK:euhmds
+2026-02-01 00:04:42.714465: ReqId=-1, Code=2106, Msg=HMDS data farm connection is OK:fundfarm
+2026-02-01 00:04:42.714465: ReqId=-1, Code=2106, Msg=HMDS data farm connection is OK:ushmds
+2026-02-01 00:04:42.715471: ReqId=-1, Code=2158, Msg=Sec-def data farm connection is OK:secdefnj
+2026-02-01 00:04:43.156256: ReqId=2000, Code=2176, Msg=Warning: Your API version does not support fractional share size rules. Please upgrade to a minimum version 163. Trimmed value 6.48 to 6
+2026-02-01 00:04:43.391083: ReqId=2001, Code=2176, Msg=Warning: Your API version does not support fractional share size rules. Please upgrade to a minimum version 163. Trimmed value 26.41 to 26
+2026-02-01 00:04:44.568930: ReqId=2002, Code=2176, Msg=Warning: Your API version does not support fractional share size rules. Please upgrade to a minimum version 163. Trimmed value 54.81 to 54
+2026-02-01 00:04:45.755650: ReqId=2003, Code=2176, Msg=Warning: Your API version does not support fractional share size rules. Please upgrade to a minimum version 163. Trimmed value 4.98 to 4
+2026-02-01 00:06:27.516999: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:cashfarm
+2026-02-01 00:06:27.516999: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:usopt.nj
+2026-02-01 00:06:27.518001: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:usfarm.nj
+2026-02-01 00:06:27.519000: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:eufarm
+2026-02-01 00:06:27.519000: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:usfarm
+2026-02-01 00:06:27.519000: ReqId=-1, Code=2106, Msg=HMDS data farm connection is OK:euhmds
+2026-02-01 00:06:27.519000: ReqId=-1, Code=2106, Msg=HMDS data farm connection is OK:fundfarm
+2026-02-01 00:06:27.520002: ReqId=-1, Code=2106, Msg=HMDS data farm connection is OK:ushmds
+2026-02-01 00:06:27.520002: ReqId=-1, Code=2158, Msg=Sec-def data farm connection is OK:secdefnj
+2026-02-01 00:06:28.000271: ReqId=2000, Code=2176, Msg=Warning: Your API version does not support fractional share size rules. Please upgrade to a minimum version 163. Trimmed value 6.48 to 6
+2026-02-01 00:06:28.330163: ReqId=2001, Code=2176, Msg=Warning: Your API version does not support fractional share size rules. Please upgrade to a minimum version 163. Trimmed value 26.41 to 26
+2026-02-01 00:06:29.609097: ReqId=2002, Code=2176, Msg=Warning: Your API version does not support fractional share size rules. Please upgrade to a minimum version 163. Trimmed value 54.81 to 54
+2026-02-01 00:06:30.870715: ReqId=2003, Code=2176, Msg=Warning: Your API version does not support fractional share size rules. Please upgrade to a minimum version 163. Trimmed value 4.98 to 4
+2026-02-01 00:07:15.608236: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:cashfarm
+2026-02-01 00:07:15.609235: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:usopt.nj
+2026-02-01 00:07:15.609235: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:usfarm.nj
+2026-02-01 00:07:15.609235: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:eufarm
+2026-02-01 00:07:15.609235: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:usfarm
+2026-02-01 00:07:15.610745: ReqId=-1, Code=2106, Msg=HMDS data farm connection is OK:euhmds
+2026-02-01 00:07:15.610745: ReqId=-1, Code=2106, Msg=HMDS data farm connection is OK:fundfarm
+2026-02-01 00:07:15.610745: ReqId=-1, Code=2106, Msg=HMDS data farm connection is OK:ushmds
+2026-02-01 00:07:15.611755: ReqId=-1, Code=2158, Msg=Sec-def data farm connection is OK:secdefnj
+2026-02-01 00:07:16.131056: ReqId=2000, Code=2176, Msg=Warning: Your API version does not support fractional share size rules. Please upgrade to a minimum version 163. Trimmed value 6.48 to 6
+2026-02-01 00:07:16.399197: ReqId=2001, Code=2176, Msg=Warning: Your API version does not support fractional share size rules. Please upgrade to a minimum version 163. Trimmed value 26.41 to 26
+2026-02-01 00:07:17.680211: ReqId=2002, Code=2176, Msg=Warning: Your API version does not support fractional share size rules. Please upgrade to a minimum version 163. Trimmed value 54.81 to 54
+2026-02-01 00:07:18.900531: ReqId=2003, Code=2176, Msg=Warning: Your API version does not support fractional share size rules. Please upgrade to a minimum version 163. Trimmed value 4.98 to 4
+2026-02-01 00:07:54.284681: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:cashfarm
+2026-02-01 00:07:54.285682: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:usopt.nj
+2026-02-01 00:07:54.286683: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:usfarm.nj
+2026-02-01 00:07:54.288682: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:eufarm
+2026-02-01 00:07:54.288682: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:usfarm
+2026-02-01 00:07:54.289684: ReqId=-1, Code=2106, Msg=HMDS data farm connection is OK:euhmds
+2026-02-01 00:07:54.289684: ReqId=-1, Code=2106, Msg=HMDS data farm connection is OK:fundfarm
+2026-02-01 00:07:54.289684: ReqId=-1, Code=2106, Msg=HMDS data farm connection is OK:ushmds
+2026-02-01 00:07:54.289684: ReqId=-1, Code=2158, Msg=Sec-def data farm connection is OK:secdefnj
+2026-02-01 00:07:54.752075: ReqId=2000, Code=2176, Msg=Warning: Your API version does not support fractional share size rules. Please upgrade to a minimum version 163. Trimmed value 6.48 to 6
+2026-02-01 00:07:55.074251: ReqId=2001, Code=2176, Msg=Warning: Your API version does not support fractional share size rules. Please upgrade to a minimum version 163. Trimmed value 26.41 to 26
+2026-02-01 00:07:56.369378: ReqId=2002, Code=2176, Msg=Warning: Your API version does not support fractional share size rules. Please upgrade to a minimum version 163. Trimmed value 54.81 to 54
+2026-02-01 00:07:57.691478: ReqId=2003, Code=2176, Msg=Warning: Your API version does not support fractional share size rules. Please upgrade to a minimum version 163. Trimmed value 4.98 to 4
+2026-02-01 01:42:14.472305: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:cashfarm
+2026-02-01 01:42:14.473305: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:usopt.nj
+2026-02-01 01:42:14.473305: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:usfarm.nj
+2026-02-01 01:42:14.474304: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:eufarm
+2026-02-01 01:42:14.474304: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:usfarm
+2026-02-01 01:42:14.474304: ReqId=-1, Code=2106, Msg=HMDS data farm connection is OK:euhmds
+2026-02-01 01:42:14.474304: ReqId=-1, Code=2106, Msg=HMDS data farm connection is OK:fundfarm
+2026-02-01 01:42:14.475305: ReqId=-1, Code=2106, Msg=HMDS data farm connection is OK:ushmds
+2026-02-01 01:42:14.475305: ReqId=-1, Code=2158, Msg=Sec-def data farm connection is OK:secdefnj
+2026-02-01 01:42:15.068495: ReqId=2000, Code=2176, Msg=Warning: Your API version does not support fractional share size rules. Please upgrade to a minimum version 163. Trimmed value 6.48 to 6
+2026-02-01 01:42:15.403119: ReqId=2001, Code=2176, Msg=Warning: Your API version does not support fractional share size rules. Please upgrade to a minimum version 163. Trimmed value 26.41 to 26
+2026-02-01 01:42:16.693544: ReqId=2002, Code=2176, Msg=Warning: Your API version does not support fractional share size rules. Please upgrade to a minimum version 163. Trimmed value 54.81 to 54
+2026-02-01 01:42:17.958531: ReqId=2003, Code=2176, Msg=Warning: Your API version does not support fractional share size rules. Please upgrade to a minimum version 163. Trimmed value 4.98 to 4
+2026-02-01 01:42:35.607616: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:cashfarm
+2026-02-01 01:42:35.607616: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:usopt.nj
+2026-02-01 01:42:35.607616: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:usfarm.nj
+2026-02-01 01:42:35.608915: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:eufarm
+2026-02-01 01:42:35.608915: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:usfarm
+2026-02-01 01:42:35.608915: ReqId=-1, Code=2106, Msg=HMDS data farm connection is OK:euhmds
+2026-02-01 01:42:35.608915: ReqId=-1, Code=2106, Msg=HMDS data farm connection is OK:fundfarm
+2026-02-01 01:42:35.609916: ReqId=-1, Code=2106, Msg=HMDS data farm connection is OK:ushmds
+2026-02-01 01:42:35.609916: ReqId=-1, Code=2158, Msg=Sec-def data farm connection is OK:secdefnj
+2026-02-01 01:42:36.129826: ReqId=2000, Code=2176, Msg=Warning: Your API version does not support fractional share size rules. Please upgrade to a minimum version 163. Trimmed value 6.48 to 6
+2026-02-01 01:42:36.411073: ReqId=2001, Code=2176, Msg=Warning: Your API version does not support fractional share size rules. Please upgrade to a minimum version 163. Trimmed value 26.41 to 26
+2026-02-01 01:42:37.692891: ReqId=2002, Code=2176, Msg=Warning: Your API version does not support fractional share size rules. Please upgrade to a minimum version 163. Trimmed value 54.81 to 54
+2026-02-01 01:42:38.889637: ReqId=2003, Code=2176, Msg=Warning: Your API version does not support fractional share size rules. Please upgrade to a minimum version 163. Trimmed value 4.98 to 4
+2026-02-01 01:56:46.647605: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:cashfarm
+2026-02-01 01:56:46.648611: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:usopt.nj
+2026-02-01 01:56:46.648611: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:usfarm.nj
+2026-02-01 01:56:46.648611: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:eufarm
+2026-02-01 01:56:46.648611: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:usfarm
+2026-02-01 01:56:46.649639: ReqId=-1, Code=2106, Msg=HMDS data farm connection is OK:euhmds
+2026-02-01 01:56:46.649639: ReqId=-1, Code=2106, Msg=HMDS data farm connection is OK:fundfarm
+2026-02-01 01:56:46.649639: ReqId=-1, Code=2106, Msg=HMDS data farm connection is OK:ushmds
+2026-02-01 01:56:46.649639: ReqId=-1, Code=2158, Msg=Sec-def data farm connection is OK:secdefnj
+2026-02-01 01:56:47.118390: ReqId=2000, Code=2176, Msg=Warning: Your API version does not support fractional share size rules. Please upgrade to a minimum version 163. Trimmed value 6.48 to 6
+2026-02-01 01:56:47.430330: ReqId=2001, Code=2176, Msg=Warning: Your API version does not support fractional share size rules. Please upgrade to a minimum version 163. Trimmed value 26.41 to 26
+2026-02-01 01:56:48.691888: ReqId=2002, Code=2176, Msg=Warning: Your API version does not support fractional share size rules. Please upgrade to a minimum version 163. Trimmed value 54.81 to 54
+2026-02-01 01:56:49.937073: ReqId=2003, Code=2176, Msg=Warning: Your API version does not support fractional share size rules. Please upgrade to a minimum version 163. Trimmed value 4.98 to 4
+2026-02-01 02:09:58.464039: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:cashfarm
+2026-02-01 02:09:58.465040: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:usopt.nj
+2026-02-01 02:09:58.465040: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:usfarm.nj
+2026-02-01 02:09:58.465040: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:eufarm
+2026-02-01 02:09:58.466041: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:usfarm
+2026-02-01 02:09:58.466041: ReqId=-1, Code=2106, Msg=HMDS data farm connection is OK:euhmds
+2026-02-01 02:09:58.466041: ReqId=-1, Code=2106, Msg=HMDS data farm connection is OK:fundfarm
+2026-02-01 02:09:58.466041: ReqId=-1, Code=2106, Msg=HMDS data farm connection is OK:ushmds
+2026-02-01 02:09:58.467040: ReqId=-1, Code=2158, Msg=Sec-def data farm connection is OK:secdefnj
+2026-02-01 02:09:58.968974: ReqId=2000, Code=2176, Msg=Warning: Your API version does not support fractional share size rules. Please upgrade to a minimum version 163. Trimmed value 6.48 to 6
+2026-02-01 02:09:59.291340: ReqId=2001, Code=2176, Msg=Warning: Your API version does not support fractional share size rules. Please upgrade to a minimum version 163. Trimmed value 26.41 to 26
+2026-02-01 02:10:00.603267: ReqId=2002, Code=2176, Msg=Warning: Your API version does not support fractional share size rules. Please upgrade to a minimum version 163. Trimmed value 54.81 to 54
+2026-02-01 02:10:01.892168: ReqId=2003, Code=2176, Msg=Warning: Your API version does not support fractional share size rules. Please upgrade to a minimum version 163. Trimmed value 4.98 to 4
+2026-02-01 02:15:55.831808: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:cashfarm
+2026-02-01 02:15:55.832808: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:usopt.nj
+2026-02-01 02:15:55.832808: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:usfarm.nj
+2026-02-01 02:15:55.832808: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:eufarm
+2026-02-01 02:15:55.833809: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:usfarm
+2026-02-01 02:15:55.833809: ReqId=-1, Code=2106, Msg=HMDS data farm connection is OK:euhmds
+2026-02-01 02:15:55.833809: ReqId=-1, Code=2106, Msg=HMDS data farm connection is OK:fundfarm
+2026-02-01 02:15:55.833809: ReqId=-1, Code=2106, Msg=HMDS data farm connection is OK:ushmds
+2026-02-01 02:15:55.834808: ReqId=-1, Code=2158, Msg=Sec-def data farm connection is OK:secdefnj
+2026-02-01 02:15:56.308127: ReqId=2000, Code=2176, Msg=Warning: Your API version does not support fractional share size rules. Please upgrade to a minimum version 163. Trimmed value 6.48 to 6
+2026-02-01 02:15:56.641945: ReqId=2001, Code=2176, Msg=Warning: Your API version does not support fractional share size rules. Please upgrade to a minimum version 163. Trimmed value 26.41 to 26
+2026-02-01 02:15:57.957471: ReqId=2002, Code=2176, Msg=Warning: Your API version does not support fractional share size rules. Please upgrade to a minimum version 163. Trimmed value 54.81 to 54
+2026-02-01 02:15:59.224956: ReqId=2003, Code=2176, Msg=Warning: Your API version does not support fractional share size rules. Please upgrade to a minimum version 163. Trimmed value 4.98 to 4
+2026-02-01 02:20:36.992317: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:cashfarm
+2026-02-01 02:20:36.992317: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:usopt.nj
+2026-02-01 02:20:36.992317: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:usfarm.nj
+2026-02-01 02:20:36.993316: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:eufarm
+2026-02-01 02:20:36.993316: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:usfarm
+2026-02-01 02:20:36.993316: ReqId=-1, Code=2106, Msg=HMDS data farm connection is OK:euhmds
+2026-02-01 02:20:36.994320: ReqId=-1, Code=2106, Msg=HMDS data farm connection is OK:fundfarm
+2026-02-01 02:20:36.994320: ReqId=-1, Code=2106, Msg=HMDS data farm connection is OK:ushmds
+2026-02-01 02:20:36.994320: ReqId=-1, Code=2158, Msg=Sec-def data farm connection is OK:secdefnj
+2026-02-01 02:20:37.476761: ReqId=2000, Code=2176, Msg=Warning: Your API version does not support fractional share size rules. Please upgrade to a minimum version 163. Trimmed value 6.48 to 6
+2026-02-01 02:20:37.798647: ReqId=2001, Code=2176, Msg=Warning: Your API version does not support fractional share size rules. Please upgrade to a minimum version 163. Trimmed value 26.41 to 26
+2026-02-01 02:20:39.086846: ReqId=2002, Code=2176, Msg=Warning: Your API version does not support fractional share size rules. Please upgrade to a minimum version 163. Trimmed value 54.81 to 54
+2026-02-01 02:20:40.387328: ReqId=2003, Code=2176, Msg=Warning: Your API version does not support fractional share size rules. Please upgrade to a minimum version 163. Trimmed value 4.98 to 4
+2026-02-01 02:24:36.941998: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:cashfarm
+2026-02-01 02:24:36.941998: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:usopt.nj
+2026-02-01 02:24:36.941998: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:usfarm.nj
+2026-02-01 02:24:36.942998: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:eufarm
+2026-02-01 02:24:36.942998: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:usfarm
+2026-02-01 02:24:36.943998: ReqId=-1, Code=2106, Msg=HMDS data farm connection is OK:euhmds
+2026-02-01 02:24:36.943998: ReqId=-1, Code=2106, Msg=HMDS data farm connection is OK:fundfarm
+2026-02-01 02:24:36.943998: ReqId=-1, Code=2106, Msg=HMDS data farm connection is OK:ushmds
+2026-02-01 02:24:36.945000: ReqId=-1, Code=2158, Msg=Sec-def data farm connection is OK:secdefnj
+2026-02-01 02:24:37.473843: ReqId=2000, Code=2176, Msg=Warning: Your API version does not support fractional share size rules. Please upgrade to a minimum version 163. Trimmed value 6.48 to 6
+2026-02-01 02:24:37.738266: ReqId=2001, Code=2176, Msg=Warning: Your API version does not support fractional share size rules. Please upgrade to a minimum version 163. Trimmed value 26.41 to 26
+2026-02-01 02:24:39.056798: ReqId=2002, Code=2176, Msg=Warning: Your API version does not support fractional share size rules. Please upgrade to a minimum version 163. Trimmed value 54.81 to 54
+2026-02-01 02:24:40.380052: ReqId=2003, Code=2176, Msg=Warning: Your API version does not support fractional share size rules. Please upgrade to a minimum version 163. Trimmed value 4.98 to 4
+2026-02-01 02:26:23.152553: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:cashfarm
+2026-02-01 02:26:23.152553: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:usopt.nj
+2026-02-01 02:26:23.153552: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:usfarm.nj
+2026-02-01 02:26:23.153552: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:eufarm
+2026-02-01 02:26:23.153552: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:usfarm
+2026-02-01 02:26:23.154557: ReqId=-1, Code=2106, Msg=HMDS data farm connection is OK:euhmds
+2026-02-01 02:26:23.154557: ReqId=-1, Code=2106, Msg=HMDS data farm connection is OK:fundfarm
+2026-02-01 02:26:23.156064: ReqId=-1, Code=2106, Msg=HMDS data farm connection is OK:ushmds
+2026-02-01 02:26:23.156064: ReqId=-1, Code=2158, Msg=Sec-def data farm connection is OK:secdefnj
+2026-02-01 02:26:23.694014: ReqId=2000, Code=2176, Msg=Warning: Your API version does not support fractional share size rules. Please upgrade to a minimum version 163. Trimmed value 7.7 to 7
+2026-02-01 02:26:23.958148: ReqId=2001, Code=2176, Msg=Warning: Your API version does not support fractional share size rules. Please upgrade to a minimum version 163. Trimmed value 538.45 to 538
+2026-02-01 02:26:25.242993: ReqId=2002, Code=2176, Msg=Warning: Your API version does not support fractional share size rules. Please upgrade to a minimum version 163. Trimmed value 94.27 to 94
+2026-02-01 02:26:26.450841: ReqId=2003, Code=2176, Msg=Warning: Your API version does not support fractional share size rules. Please upgrade to a minimum version 163. Trimmed value 72.49 to 72
+2026-02-01 02:29:44.734578: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:cashfarm
+2026-02-01 02:29:44.734578: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:usopt.nj
+2026-02-01 02:29:44.734578: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:usfarm.nj
+2026-02-01 02:29:44.735944: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:eufarm
+2026-02-01 02:29:44.735944: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:usfarm
+2026-02-01 02:29:44.735944: ReqId=-1, Code=2106, Msg=HMDS data farm connection is OK:euhmds
+2026-02-01 02:29:44.736943: ReqId=-1, Code=2106, Msg=HMDS data farm connection is OK:fundfarm
+2026-02-01 02:29:44.736943: ReqId=-1, Code=2106, Msg=HMDS data farm connection is OK:ushmds
+2026-02-01 02:29:44.736943: ReqId=-1, Code=2158, Msg=Sec-def data farm connection is OK:secdefnj
+2026-02-01 02:29:45.243243: ReqId=2000, Code=2176, Msg=Warning: Your API version does not support fractional share size rules. Please upgrade to a minimum version 163. Trimmed value 6.48 to 6
+2026-02-01 02:29:45.541625: ReqId=2001, Code=2176, Msg=Warning: Your API version does not support fractional share size rules. Please upgrade to a minimum version 163. Trimmed value 26.41 to 26
+2026-02-01 02:29:46.818356: ReqId=2002, Code=2176, Msg=Warning: Your API version does not support fractional share size rules. Please upgrade to a minimum version 163. Trimmed value 54.81 to 54
+2026-02-01 02:29:48.124518: ReqId=2003, Code=2176, Msg=Warning: Your API version does not support fractional share size rules. Please upgrade to a minimum version 163. Trimmed value 4.98 to 4
+2026-02-01 02:30:10.531978: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:cashfarm
+2026-02-01 02:30:10.532976: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:usopt.nj
+2026-02-01 02:30:10.532976: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:usfarm.nj
+2026-02-01 02:30:10.532976: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:eufarm
+2026-02-01 02:30:10.532976: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:usfarm
+2026-02-01 02:30:10.534479: ReqId=-1, Code=2106, Msg=HMDS data farm connection is OK:euhmds
+2026-02-01 02:30:10.534479: ReqId=-1, Code=2106, Msg=HMDS data farm connection is OK:fundfarm
+2026-02-01 02:30:10.534479: ReqId=-1, Code=2106, Msg=HMDS data farm connection is OK:ushmds
+2026-02-01 02:30:10.534479: ReqId=-1, Code=2158, Msg=Sec-def data farm connection is OK:secdefnj
+2026-02-01 02:30:10.990375: ReqId=2000, Code=2176, Msg=Warning: Your API version does not support fractional share size rules. Please upgrade to a minimum version 163. Trimmed value 6.48 to 6
+2026-02-01 02:30:11.352996: ReqId=2001, Code=2176, Msg=Warning: Your API version does not support fractional share size rules. Please upgrade to a minimum version 163. Trimmed value 26.41 to 26
+2026-02-01 02:30:12.659248: ReqId=2002, Code=2176, Msg=Warning: Your API version does not support fractional share size rules. Please upgrade to a minimum version 163. Trimmed value 54.81 to 54
+2026-02-01 02:30:13.907968: ReqId=2003, Code=2176, Msg=Warning: Your API version does not support fractional share size rules. Please upgrade to a minimum version 163. Trimmed value 4.98 to 4
+2026-02-01 02:31:28.914901: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:cashfarm
+2026-02-01 02:31:28.915899: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:usopt.nj
+2026-02-01 02:31:28.915899: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:usfarm.nj
+2026-02-01 02:31:28.916897: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:eufarm
+2026-02-01 02:31:28.917899: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:usfarm
+2026-02-01 02:31:28.917899: ReqId=-1, Code=2106, Msg=HMDS data farm connection is OK:euhmds
+2026-02-01 02:31:28.917899: ReqId=-1, Code=2106, Msg=HMDS data farm connection is OK:fundfarm
+2026-02-01 02:31:28.917899: ReqId=-1, Code=2106, Msg=HMDS data farm connection is OK:ushmds
+2026-02-01 02:31:28.918898: ReqId=-1, Code=2158, Msg=Sec-def data farm connection is OK:secdefnj
+2026-02-01 02:31:29.377621: ReqId=2000, Code=2176, Msg=Warning: Your API version does not support fractional share size rules. Please upgrade to a minimum version 163. Trimmed value 7.7 to 7
+2026-02-01 02:31:29.571616: ReqId=2001, Code=2176, Msg=Warning: Your API version does not support fractional share size rules. Please upgrade to a minimum version 163. Trimmed value 538.45 to 538
+2026-02-01 02:31:30.827721: ReqId=2002, Code=2176, Msg=Warning: Your API version does not support fractional share size rules. Please upgrade to a minimum version 163. Trimmed value 94.27 to 94
+2026-02-01 02:31:32.089860: ReqId=2003, Code=2176, Msg=Warning: Your API version does not support fractional share size rules. Please upgrade to a minimum version 163. Trimmed value 72.49 to 72
+2026-02-01 02:32:36.799562: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:cashfarm
+2026-02-01 02:32:36.799562: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:usopt.nj
+2026-02-01 02:32:36.800563: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:usfarm.nj
+2026-02-01 02:32:36.801562: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:eufarm
+2026-02-01 02:32:36.801562: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:usfarm
+2026-02-01 02:32:36.801562: ReqId=-1, Code=2106, Msg=HMDS data farm connection is OK:euhmds
+2026-02-01 02:32:36.801562: ReqId=-1, Code=2106, Msg=HMDS data farm connection is OK:fundfarm
+2026-02-01 02:32:36.803069: ReqId=-1, Code=2106, Msg=HMDS data farm connection is OK:ushmds
+2026-02-01 02:32:36.803069: ReqId=-1, Code=2158, Msg=Sec-def data farm connection is OK:secdefnj
+2026-02-01 02:32:37.218034: ReqId=2000, Code=2176, Msg=Warning: Your API version does not support fractional share size rules. Please upgrade to a minimum version 163. Trimmed value 7.7 to 7
+2026-02-01 02:32:37.474387: ReqId=2001, Code=2176, Msg=Warning: Your API version does not support fractional share size rules. Please upgrade to a minimum version 163. Trimmed value 538.45 to 538
+2026-02-01 02:32:38.775070: ReqId=2002, Code=2176, Msg=Warning: Your API version does not support fractional share size rules. Please upgrade to a minimum version 163. Trimmed value 94.27 to 94
+2026-02-01 02:32:40.007627: ReqId=2003, Code=2176, Msg=Warning: Your API version does not support fractional share size rules. Please upgrade to a minimum version 163. Trimmed value 72.49 to 72
+2026-02-01 02:33:00.096006: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:cashfarm
+2026-02-01 02:33:00.096006: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:usopt.nj
+2026-02-01 02:33:00.096006: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:usfarm.nj
+2026-02-01 02:33:00.097005: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:eufarm
+2026-02-01 02:33:00.097005: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:usfarm
+2026-02-01 02:33:00.097005: ReqId=-1, Code=2106, Msg=HMDS data farm connection is OK:euhmds
+2026-02-01 02:33:00.097005: ReqId=-1, Code=2106, Msg=HMDS data farm connection is OK:fundfarm
+2026-02-01 02:33:00.098004: ReqId=-1, Code=2106, Msg=HMDS data farm connection is OK:ushmds
+2026-02-01 02:33:00.098004: ReqId=-1, Code=2158, Msg=Sec-def data farm connection is OK:secdefnj
+2026-02-01 02:33:00.551524: ReqId=2000, Code=2176, Msg=Warning: Your API version does not support fractional share size rules. Please upgrade to a minimum version 163. Trimmed value 7.7 to 7
+2026-02-01 02:33:00.752821: ReqId=2001, Code=2176, Msg=Warning: Your API version does not support fractional share size rules. Please upgrade to a minimum version 163. Trimmed value 538.45 to 538
+2026-02-01 02:33:01.980474: ReqId=2002, Code=2176, Msg=Warning: Your API version does not support fractional share size rules. Please upgrade to a minimum version 163. Trimmed value 94.27 to 94
+2026-02-01 02:33:03.183165: ReqId=2003, Code=2176, Msg=Warning: Your API version does not support fractional share size rules. Please upgrade to a minimum version 163. Trimmed value 72.49 to 72
+2026-02-01 02:34:25.710521: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:cashfarm
+2026-02-01 02:34:25.711522: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:usopt.nj
+2026-02-01 02:34:25.711522: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:usfarm.nj
+2026-02-01 02:34:25.711522: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:eufarm
+2026-02-01 02:34:25.711522: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:usfarm
+2026-02-01 02:34:25.712521: ReqId=-1, Code=2106, Msg=HMDS data farm connection is OK:euhmds
+2026-02-01 02:34:25.712521: ReqId=-1, Code=2106, Msg=HMDS data farm connection is OK:fundfarm
+2026-02-01 02:34:25.712521: ReqId=-1, Code=2106, Msg=HMDS data farm connection is OK:ushmds
+2026-02-01 02:34:25.712521: ReqId=-1, Code=2158, Msg=Sec-def data farm connection is OK:secdefnj
+2026-02-01 02:34:26.185180: ReqId=2000, Code=2176, Msg=Warning: Your API version does not support fractional share size rules. Please upgrade to a minimum version 163. Trimmed value 7.7 to 7
+2026-02-01 02:34:26.387203: ReqId=2001, Code=2176, Msg=Warning: Your API version does not support fractional share size rules. Please upgrade to a minimum version 163. Trimmed value 538.45 to 538
+2026-02-01 02:34:27.677280: ReqId=2002, Code=2176, Msg=Warning: Your API version does not support fractional share size rules. Please upgrade to a minimum version 163. Trimmed value 94.27 to 94
+2026-02-01 02:34:28.890581: ReqId=2003, Code=2176, Msg=Warning: Your API version does not support fractional share size rules. Please upgrade to a minimum version 163. Trimmed value 72.49 to 72
+2026-02-01 02:34:50.832029: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:cashfarm
+2026-02-01 02:34:50.832029: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:usopt.nj
+2026-02-01 02:34:50.832029: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:usfarm.nj
+2026-02-01 02:34:50.834034: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:eufarm
+2026-02-01 02:34:50.834034: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:usfarm
+2026-02-01 02:34:50.834034: ReqId=-1, Code=2106, Msg=HMDS data farm connection is OK:euhmds
+2026-02-01 02:34:50.834034: ReqId=-1, Code=2106, Msg=HMDS data farm connection is OK:fundfarm
+2026-02-01 02:34:50.834034: ReqId=-1, Code=2106, Msg=HMDS data farm connection is OK:ushmds
+2026-02-01 02:34:50.835035: ReqId=-1, Code=2158, Msg=Sec-def data farm connection is OK:secdefnj
+2026-02-01 02:34:51.278862: ReqId=2000, Code=2176, Msg=Warning: Your API version does not support fractional share size rules. Please upgrade to a minimum version 163. Trimmed value 7.7 to 7
+2026-02-01 02:34:51.483099: ReqId=2001, Code=2176, Msg=Warning: Your API version does not support fractional share size rules. Please upgrade to a minimum version 163. Trimmed value 538.45 to 538
+2026-02-01 02:34:52.765339: ReqId=2002, Code=2176, Msg=Warning: Your API version does not support fractional share size rules. Please upgrade to a minimum version 163. Trimmed value 94.27 to 94
+2026-02-01 02:34:54.036867: ReqId=2003, Code=2176, Msg=Warning: Your API version does not support fractional share size rules. Please upgrade to a minimum version 163. Trimmed value 72.49 to 72
+2026-02-01 02:35:44.778626: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:cashfarm
+2026-02-01 02:35:44.779627: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:usopt.nj
+2026-02-01 02:35:44.779627: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:usfarm.nj
+2026-02-01 02:35:44.780626: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:eufarm
+2026-02-01 02:35:44.780626: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:usfarm
+2026-02-01 02:35:44.781624: ReqId=-1, Code=2106, Msg=HMDS data farm connection is OK:euhmds
+2026-02-01 02:35:44.781624: ReqId=-1, Code=2106, Msg=HMDS data farm connection is OK:fundfarm
+2026-02-01 02:35:44.781624: ReqId=-1, Code=2106, Msg=HMDS data farm connection is OK:ushmds
+2026-02-01 02:35:44.781624: ReqId=-1, Code=2158, Msg=Sec-def data farm connection is OK:secdefnj
+2026-02-01 02:35:45.256675: ReqId=2000, Code=2176, Msg=Warning: Your API version does not support fractional share size rules. Please upgrade to a minimum version 163. Trimmed value 7.7 to 7
+2026-02-01 02:35:45.435508: ReqId=2001, Code=2176, Msg=Warning: Your API version does not support fractional share size rules. Please upgrade to a minimum version 163. Trimmed value 538.45 to 538
+2026-02-01 02:35:46.702005: ReqId=2002, Code=2176, Msg=Warning: Your API version does not support fractional share size rules. Please upgrade to a minimum version 163. Trimmed value 94.27 to 94
+2026-02-01 02:35:47.960306: ReqId=2003, Code=2176, Msg=Warning: Your API version does not support fractional share size rules. Please upgrade to a minimum version 163. Trimmed value 72.49 to 72
+2026-02-01 02:38:17.786878: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:cashfarm
+2026-02-01 02:38:17.786878: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:usopt.nj
+2026-02-01 02:38:17.786878: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:usfarm.nj
+2026-02-01 02:38:17.788877: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:eufarm
+2026-02-01 02:38:17.788877: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:usfarm
+2026-02-01 02:38:17.788877: ReqId=-1, Code=2106, Msg=HMDS data farm connection is OK:euhmds
+2026-02-01 02:38:17.789877: ReqId=-1, Code=2106, Msg=HMDS data farm connection is OK:fundfarm
+2026-02-01 02:38:17.789877: ReqId=-1, Code=2106, Msg=HMDS data farm connection is OK:ushmds
+2026-02-01 02:38:17.789877: ReqId=-1, Code=2158, Msg=Sec-def data farm connection is OK:secdefnj
+2026-02-01 02:38:18.242420: ReqId=2000, Code=2176, Msg=Warning: Your API version does not support fractional share size rules. Please upgrade to a minimum version 163. Trimmed value 7.7 to 7
+2026-02-01 02:38:18.445812: ReqId=2001, Code=2176, Msg=Warning: Your API version does not support fractional share size rules. Please upgrade to a minimum version 163. Trimmed value 538.45 to 538
+2026-02-01 02:38:19.714575: ReqId=2002, Code=2176, Msg=Warning: Your API version does not support fractional share size rules. Please upgrade to a minimum version 163. Trimmed value 94.27 to 94
+2026-02-01 02:38:20.960510: ReqId=2003, Code=2176, Msg=Warning: Your API version does not support fractional share size rules. Please upgrade to a minimum version 163. Trimmed value 72.49 to 72
+2026-02-01 02:40:31.203946: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:cashfarm
+2026-02-01 02:40:31.203946: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:usopt.nj
+2026-02-01 02:40:31.204947: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:usfarm.nj
+2026-02-01 02:40:31.204947: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:eufarm
+2026-02-01 02:40:31.205948: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:usfarm
+2026-02-01 02:40:31.205948: ReqId=-1, Code=2106, Msg=HMDS data farm connection is OK:euhmds
+2026-02-01 02:40:31.205948: ReqId=-1, Code=2106, Msg=HMDS data farm connection is OK:fundfarm
+2026-02-01 02:40:31.205948: ReqId=-1, Code=2106, Msg=HMDS data farm connection is OK:ushmds
+2026-02-01 02:40:31.206950: ReqId=-1, Code=2158, Msg=Sec-def data farm connection is OK:secdefnj
+2026-02-01 02:40:31.655614: ReqId=2000, Code=2176, Msg=Warning: Your API version does not support fractional share size rules. Please upgrade to a minimum version 163. Trimmed value 7.7 to 7
+2026-02-01 02:40:31.890558: ReqId=2001, Code=2176, Msg=Warning: Your API version does not support fractional share size rules. Please upgrade to a minimum version 163. Trimmed value 94.27 to 94
+2026-02-01 02:40:33.111154: ReqId=2002, Code=2176, Msg=Warning: Your API version does not support fractional share size rules. Please upgrade to a minimum version 163. Trimmed value 72.49 to 72
+2026-02-01 02:40:34.452084: ReqId=2003, Code=2176, Msg=Warning: Your API version does not support fractional share size rules. Please upgrade to a minimum version 163. Trimmed value 5.61 to 5
+2026-02-01 02:40:35.739542: ReqId=2004, Code=162, Msg=Historical Market Data Service error message:HMDS query returned no data: HIND@SMART Trades
+2026-02-01 02:41:50.878478: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:cashfarm
+2026-02-01 02:41:50.878478: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:usopt.nj
+2026-02-01 02:41:50.879480: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:usfarm.nj
+2026-02-01 02:41:50.881960: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:eufarm
+2026-02-01 02:41:50.881960: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:usfarm
+2026-02-01 02:41:50.882959: ReqId=-1, Code=2106, Msg=HMDS data farm connection is OK:euhmds
+2026-02-01 02:41:50.882959: ReqId=-1, Code=2106, Msg=HMDS data farm connection is OK:fundfarm
+2026-02-01 02:41:50.882959: ReqId=-1, Code=2106, Msg=HMDS data farm connection is OK:ushmds
+2026-02-01 02:41:50.882959: ReqId=-1, Code=2158, Msg=Sec-def data farm connection is OK:secdefnj
+2026-02-01 02:41:51.316618: ReqId=2000, Code=2176, Msg=Warning: Your API version does not support fractional share size rules. Please upgrade to a minimum version 163. Trimmed value 7.7 to 7
+2026-02-01 02:41:51.549192: ReqId=2001, Code=2176, Msg=Warning: Your API version does not support fractional share size rules. Please upgrade to a minimum version 163. Trimmed value 72.49 to 72
+2026-02-01 02:41:52.838250: ReqId=2002, Code=2176, Msg=Warning: Your API version does not support fractional share size rules. Please upgrade to a minimum version 163. Trimmed value 5.61 to 5
+2026-02-01 02:41:54.043164: ReqId=2003, Code=162, Msg=Historical Market Data Service error message:HMDS query returned no data: HIND@SMART Trades
+2026-02-01 02:45:53.687472: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:cashfarm
+2026-02-01 02:45:53.687472: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:usopt.nj
+2026-02-01 02:45:53.687472: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:usfarm.nj
+2026-02-01 02:45:53.687472: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:eufarm
+2026-02-01 02:45:53.688478: ReqId=-1, Code=2104, Msg=Market data farm connection is OK:usfarm
+2026-02-01 02:45:53.688478: ReqId=-1, Code=2106, Msg=HMDS data farm connection is OK:euhmds
+2026-02-01 02:45:53.689480: ReqId=-1, Code=2106, Msg=HMDS data farm connection is OK:fundfarm
+2026-02-01 02:45:53.689480: ReqId=-1, Code=2106, Msg=HMDS data farm connection is OK:ushmds
+2026-02-01 02:45:53.689480: ReqId=-1, Code=2158, Msg=Sec-def data farm connection is OK:secdefnj
+2026-02-01 02:45:54.108513: ReqId=2000, Code=2176, Msg=Warning: Your API version does not support fractional share size rules. Please upgrade to a minimum version 163. Trimmed value 20.22 to 20
+2026-02-01 02:45:54.390399: ReqId=2001, Code=2176, Msg=Warning: Your API version does not support fractional share size rules. Please upgrade to a minimum version 163. Trimmed value 253.7 to 253
+2026-02-01 02:45:55.686639: ReqId=2002, Code=2176, Msg=Warning: Your API version does not support fractional share size rules. Please upgrade to a minimum version 163. Trimmed value 20.22 to 20
+2026-02-01 02:45:56.859927: ReqId=2003, Code=162, Msg=Historical Market Data Service error message:HMDS query returned no data: CYN@SMART Trades

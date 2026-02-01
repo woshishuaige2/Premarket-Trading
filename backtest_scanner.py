@@ -33,8 +33,8 @@ class BacktestEngine:
         """Fetch 1s and 5s bars from TWS for a specific date."""
         # TWS expects "YYYYMMDD HH:MM:SS"
         target_date = datetime.strptime(date_str, "%Y-%m-%d")
-        # Use 10:00 AM to ensure we capture the full 9:30 AM open if needed
-        end_dt = target_date.replace(hour=10, minute=0, second=0)
+        # Use 9:30 AM to align with the end of premarket
+        end_dt = target_date.replace(hour=8, minute=00, second=0)
         
         # Use exact format from Scanner-Alert: "1 D" and "YYYYMMDD HH:MM:SS US/Eastern"
         print(f"[BACKTEST] Requesting 5s bars for {self.symbol} on {date_str}...")
@@ -42,7 +42,7 @@ class BacktestEngine:
         print(f"[DEBUG] {self.symbol} 5s bars received: {len(bars_5s_raw)}")
         
         print(f"[BACKTEST] Requesting 1s bars for {self.symbol} on {date_str} (Multi-chunk)...")
-        # 1s bars are limited to 1800-3600 seconds per request. 
+        # 1s bars are limited to 1800-3600 seconds per request.
         # We fetch three 30-minute chunks to cover the most active premarket (08:00 - 09:30)
         bars_1s_raw = []
         for i in range(3):
@@ -117,7 +117,19 @@ class BacktestEngine:
                     mock_1s = Bar(last_5s.timestamp, last_5s.open, last_5s.high, last_5s.low, last_5s.close, last_5s.volume // 5)
                     self.market_data.bars_1s = [mock_1s]
                 
+                # Debug print for specified time window
+                if config.DEBUG_TIME_WINDOW and ts_str.startswith(config.DEBUG_TIME_WINDOW):
+                    if self.market_data.bars_1s:
+                        last_1s = self.market_data.bars_1s[-1]
+                        ret_1s = (last_1s.close - last_1s.open) / last_1s.open if last_1s.open != 0 else 0
+                        print(f"[DEBUG-{config.DEBUG_TIME_WINDOW}] {ts_str} | 1s bar: O={last_1s.open:.4f} H={last_1s.high:.4f} L={last_1s.low:.4f} C={last_1s.close:.4f} V={last_1s.volume:.0f} | Ret={ret_1s:.2%} | Med_Vol={self.market_data.med_vol_1s:.0f} | Threshold={config.SHOCK_RET_1S:.2%}, {config.SHOCK_VOL_MULT_1S}x")
+                
                 shock_ok, reason = StrategyLogic.check_shock_1s(self.market_data)
+                
+                # Also print shock check result for specified time window
+                if config.DEBUG_TIME_WINDOW and ts_str.startswith(config.DEBUG_TIME_WINDOW):
+                    print(f"[DEBUG-{config.DEBUG_TIME_WINDOW}] {ts_str} | Shock Check: {shock_ok} | {reason}")
+                
                 if shock_ok:
                     print(f"[DEBUG] {ts_str} {self.symbol} IDLE -> ARMED. Reason: {reason}")
                     self.state = "ARMED"
@@ -154,17 +166,36 @@ class BacktestEngine:
             )
             if exit_triggered:
                 exit_price = self.market_data.bid
-                pnl = (exit_price - self.entry_price) * self.shares
+                gross_pnl = (exit_price - self.entry_price) * self.shares
+                investment = self.entry_price * self.shares
+                
+                # Calculate commissions
+                if self.entry_price >= 1.0:
+                    entry_commission = max(config.COMMISSION_MIN, self.shares * config.COMMISSION_PER_SHARE)
+                    exit_commission = max(config.COMMISSION_MIN, self.shares * config.COMMISSION_PER_SHARE)
+                else:
+                    entry_commission = investment * config.COMMISSION_PERCENT_LOW
+                    exit_commission = (exit_price * self.shares) * config.COMMISSION_PERCENT_LOW
+                
+                total_commission = entry_commission + exit_commission
+                net_pnl = gross_pnl - total_commission
+                pnl_pct = (net_pnl / investment * 100) if investment > 0 else 0
+                
                 self.trades.append({
                     'symbol': self.symbol,
                     'entry_time': self.entry_time,
                     'exit_time': self.market_data.timestamp,
                     'entry_price': self.entry_price,
                     'exit_price': exit_price,
-                    'pnl': pnl,
+                    'shares': self.shares,
+                    'investment': investment,
+                    'gross_pnl': gross_pnl,
+                    'commission': total_commission,
+                    'pnl': net_pnl,
+                    'pnl_pct': pnl_pct,
                     'reason': reason
                 })
-                self.capital += pnl
+                self.capital += net_pnl
                 self.state = "IDLE"
 
 def run_backtest(symbol: str, bars_1s: List[Bar], bars_5s: List[Bar]):

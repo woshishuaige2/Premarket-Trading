@@ -7,10 +7,11 @@ All thresholds and parameters are defined here as global constants.
 # TIME WINDOWS (US/Eastern)
 # =============================================================================
 PREMARKET_WINDOWS = [
-    ("06:59:45", "07:02:30"),
-    ("07:29:45", "07:32:30"),
-    ("07:59:45", "08:02:30"),
-    ("08:29:45", "08:32:30")
+    ("04:00:00", "09:30:00") # Loosened for testing: Full premarket
+    # ("06:59:45", "07:02:30"),
+    # ("07:29:45", "07:32:30"),
+    # ("07:59:45", "08:02:30"),
+    # ("08:29:45", "08:32:30")
 ]
 
 # =============================================================================
@@ -21,22 +22,27 @@ SPREAD_REL_MULT = 0.25          # Spread must be <= 25% of the 5s move magnitude
 QUOTE_STALE_MS = 1000           # Max age of bid/ask quote in ms
 
 # =============================================================================
-# LAYER A: SHOCK DETECTOR (1 second)
+# LAYER A: SHOCK DETECTOR (1-second OR 2-second alternative)
 # =============================================================================
-SHOCK_RET_1S = 0.03             # +3% to +5% (0.03 = 3%)
-SHOCK_VOL_MULT_1S = 3.0         # vol_1s >= 3x median_vol_1s
+# Primary: Single 1-second bar shock
+SHOCK_RET_1S = 0.02             # +2% return in a single 1s bar
+SHOCK_VOL_MULT_1S = 3.0         # vol_1s >= 3x median_vol_1s (120s lookback)
+
+# Alternative: 2-second combined shock (compensates for bar timing differences)
+SHOCK_RET_2S = 0.03             # +3% return over last 2 consecutive 1s bars
+SHOCK_VOL_MULT_2S = 3.0         # combined vol over 2s >= 3x median_vol_1s
 
 # =============================================================================
 # LAYER B: CONTINUATION CONFIRM (5 seconds)
 # =============================================================================
 CONFIRM_RET_5S = 0.04           # +4% to +8%
-CONFIRM_VOL_MULT_5S = 2.0       # vol_5s >= 2x median_vol_5s
+CONFIRM_VOL_MULT_5S = 2.0       # vol_5s >= 2x median_vol_5s, use 120 second rolling lookback window
 RANGE_MULT_5S = 2.0             # range_5s >= 2x median_range_5s
 
 # =============================================================================
 # NO-INSTANT-FADE FILTER
 # =============================================================================
-NO_FADE_FRAC = 0.25             # Must hold within top 25% of 5s range
+NO_FADE_FRAC = 0.5             # Must hold within top 50% of 5s range
 
 # =============================================================================
 # ORDER PLACEMENT
@@ -71,6 +77,18 @@ ARM_TIMEOUT_SECONDS = 3.0
 # =============================================================================
 # TRADING PARAMETERS
 # =============================================================================
-INVESTMENT_PER_TRADE = 1000.0
+INVESTMENT_PER_TRADE = 200.0
 ACCOUNT_NUMBER = "DUO200259"     # Replace with actual IBKR account
 WATCHLIST = ["TWNP", "PMN"]
+
+# =============================================================================
+# COMMISSION STRUCTURE (IBKR)
+# =============================================================================
+COMMISSION_PER_SHARE = 0.005    # $0.005/share for stocks >= $1
+COMMISSION_MIN = 1.0            # Minimum commission per order
+COMMISSION_PERCENT_LOW = 0.005  # 0.5% of trade value for stocks < $1
+
+# =============================================================================
+# DEBUG SETTINGS
+# =============================================================================
+DEBUG_TIME_WINDOW = "08:01"        # Set to "HH:MM" (e.g., "09:16") to enable detailed debug output for that minute, None to disable
