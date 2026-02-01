@@ -133,20 +133,23 @@ class StrategyLogic:
     def calculate_medians(bars: List[Bar], window_seconds: int = 120) -> Tuple[float, float, float]:
         """Calculate rolling medians for volume and range."""
         if not bars:
-            return 0.0, 0.0, 0.0
+            return 1.0, 0.001, 0.0 # Return small non-zero defaults
             
         # Filter bars within the window
         now = bars[-1].timestamp
         cutoff = now - timedelta(seconds=window_seconds)
         window_bars = [b for b in bars if b.timestamp >= cutoff]
         
-        if not window_bars:
-            return 0.0, 0.0, 0.0
+        if len(window_bars) < 5: # If not enough history, use all available bars
+            window_bars = bars[-10:]
             
-        vols = [b.volume for b in window_bars]
-        ranges = [b.high - b.low for b in window_bars]
+        vols = [b.volume for b in window_bars if b.volume > 0]
+        ranges = [b.high - b.low for b in window_bars if (b.high - b.low) > 0]
         
-        return float(np.median(vols)), float(np.median(ranges)), 0.0 # Third value reserved if needed
+        med_vol = float(np.median(vols)) if vols else 1.0
+        med_range = float(np.median(ranges)) if ranges else 0.001
+        
+        return max(1.0, med_vol), max(0.001, med_range), 0.0
 
     @staticmethod
     def check_exit(data: MarketData, entry_price: float, stop_price: float, entry_time: datetime, R: float) -> Tuple[bool, str]:

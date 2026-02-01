@@ -87,23 +87,27 @@ class BacktestEngine:
         self.market_data.med_range_5s = mr5
 
     def _process_logic(self):
+        ts_str = self.market_data.timestamp.strftime("%H:%M:%S")
         if self.state == "IDLE":
             if StrategyLogic.is_in_window(self.market_data.timestamp):
-                shock_ok, _ = StrategyLogic.check_shock_1s(self.market_data)
+                shock_ok, reason = StrategyLogic.check_shock_1s(self.market_data)
                 if shock_ok:
+                    print(f"[DEBUG] {ts_str} {self.symbol} IDLE -> ARMED. Reason: {reason}")
                     self.state = "ARMED"
                     self.arm_time = self.market_data.timestamp
 
         elif self.state == "ARMED":
-            if (self.market_data.timestamp - self.arm_time).total_seconds() > config.ARM_TIMEOUT_SECONDS:
+            elapsed = (self.market_data.timestamp - self.arm_time).total_seconds()
+            if elapsed > config.ARM_TIMEOUT_SECONDS:
+                print(f"[DEBUG] {ts_str} {self.symbol} ARMED -> IDLE (Timeout {elapsed}s)")
                 self.state = "IDLE"
                 return
 
-            confirm_ok, _ = StrategyLogic.check_confirm_5s(self.market_data)
-            # In backtest we assume safety_ok is true or mock it
+            confirm_ok, c_reason = StrategyLogic.check_confirm_5s(self.market_data)
             no_fade = StrategyLogic.check_no_fade(self.market_data)
             
             if confirm_ok and no_fade:
+                print(f"[DEBUG] {ts_str} {self.symbol} ARMED -> ENTRY. Reason: {c_reason}")
                 # Execute Entry
                 self.entry_price = self.market_data.ask
                 med_range = self.market_data.med_range_5s
