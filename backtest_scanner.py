@@ -42,7 +42,8 @@ class BacktestEngine:
         
         print(f"[BACKTEST] Requesting 1s bars for {self.symbol} on {date_str}...")
         # 1s bars are limited to 1800-3600 seconds per request in some TWS versions
-        bars_1s_raw = tws_app.fetch_historical_bars(self.symbol, end_dt, duration="1800 S", bar_size="1 secs")
+        # Request 3600S (1 hour) to cover more of the premarket leading up to the open
+        bars_1s_raw = tws_app.fetch_historical_bars(self.symbol, end_dt, duration="3600 S", bar_size="1 secs")
         print(f"[DEBUG] {self.symbol} 1s bars received: {len(bars_1s_raw)}")
         
         def convert_bars(raw_list):
@@ -90,6 +91,13 @@ class BacktestEngine:
         ts_str = self.market_data.timestamp.strftime("%H:%M:%S")
         if self.state == "IDLE":
             if StrategyLogic.is_in_window(self.market_data.timestamp):
+                # Fallback: If no 1s bars, use the latest 5s bar for shock detection
+                if not self.market_data.bars_1s and self.market_data.bars_5s:
+                    last_5s = self.market_data.bars_5s[-1]
+                    # Simulate a 1s bar from the 5s bar for the detector
+                    mock_1s = Bar(last_5s.timestamp, last_5s.open, last_5s.high, last_5s.low, last_5s.close, last_5s.volume // 5)
+                    self.market_data.bars_1s = [mock_1s]
+                
                 shock_ok, reason = StrategyLogic.check_shock_1s(self.market_data)
                 if shock_ok:
                     print(f"[DEBUG] {ts_str} {self.symbol} IDLE -> ARMED. Reason: {reason}")
