@@ -2,6 +2,7 @@
 Backtest Scanner for Premarket Strategy
 Uses shared StrategyLogic to ensure consistency with live trading.
 """
+import time
 from datetime import datetime, timedelta
 from typing import List, Dict, Optional, Tuple
 from dataclasses import dataclass, field
@@ -40,11 +41,29 @@ class BacktestEngine:
         bars_5s_raw = tws_app.fetch_historical_bars(self.symbol, end_dt, duration="1 D", bar_size="5 secs")
         print(f"[DEBUG] {self.symbol} 5s bars received: {len(bars_5s_raw)}")
         
-        print(f"[BACKTEST] Requesting 1s bars for {self.symbol} on {date_str}...")
-        # 1s bars are limited to 1800-3600 seconds per request in some TWS versions
-        # Request 3600S (1 hour) to cover more of the premarket leading up to the open
-        bars_1s_raw = tws_app.fetch_historical_bars(self.symbol, end_dt, duration="3600 S", bar_size="1 secs")
-        print(f"[DEBUG] {self.symbol} 1s bars received: {len(bars_1s_raw)}")
+        print(f"[BACKTEST] Requesting 1s bars for {self.symbol} on {date_str} (Multi-chunk)...")
+        # 1s bars are limited to 1800-3600 seconds per request. 
+        # We fetch three 30-minute chunks to cover the most active premarket (08:00 - 09:30)
+        bars_1s_raw = []
+        for i in range(3):
+            chunk_end = end_dt - timedelta(seconds=i * 1800)
+            print(f"  > Fetching 1s chunk {i+1}/3 ending at {chunk_end.strftime('%H:%M:%S')}...")
+            chunk_data = tws_app.fetch_historical_bars(self.symbol, chunk_end, duration="1800 S", bar_size="1 secs")
+            if chunk_data:
+                bars_1s_raw.extend(chunk_data)
+            # Small sleep to avoid pacing violations
+            time.sleep(1)
+        
+        # Sort and remove duplicates if any
+        bars_1s_raw.sort(key=lambda x: x['date'])
+        unique_bars = []
+        last_date = None
+        for b in bars_1s_raw:
+            if b['date'] != last_date:
+                unique_bars.append(b)
+                last_date = b['date']
+        bars_1s_raw = unique_bars
+        print(f"[DEBUG] {self.symbol} 1s bars received (total): {len(bars_1s_raw)}")
         
         def convert_bars(raw_list):
             converted = []

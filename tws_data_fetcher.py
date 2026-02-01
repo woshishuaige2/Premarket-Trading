@@ -98,6 +98,7 @@ class TWSDataApp(EClient, EWrapper):
             2104, 2106, 2107, 2119, 2158,  # Market data farm connection messages
             2106,  # HMDS data farm connection
             2158,  # Sec-def data farm connection
+            2176,  # Fractional share warning
         ]
         if errorCode in suppressed_codes:
             return
@@ -105,7 +106,7 @@ class TWSDataApp(EClient, EWrapper):
             print(f"[TWS] Using delayed market data (live subscription may be needed)")
             return
         # Only show actual errors (code >= 500) or important warnings
-        if errorCode >= 500 or errorCode in [1100, 1101, 1102, 1300, 201]:
+        if errorCode >= 500 or errorCode in [1100, 1101, 1102, 1300, 201, 162]:
             # Try to find the symbol associated with this reqId
             symbol_info = ""
             with self.lock:
