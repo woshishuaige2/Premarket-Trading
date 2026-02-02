@@ -35,11 +35,38 @@ class SymbolMonitor:
         self.last_1s_ts = None
         self.last_5s_ts = None
         
-        self.state = "IDLE"
+        self.state = "WARMUP"
         self.arm_time = None
-        self.last_reason = "--"
+        self.last_reason = "WARMING_UP"
+        self.warmup_start_time = datetime.now()
         
         self.market_data = MarketData(symbol=symbol, timestamp=datetime.now(), price=0.0)
+        
+        # Preload history
+        self._preload_history()
+
+    def _preload_history(self):
+        """Fetch last few minutes of bars to warm up medians and VWAP."""
+        try:
+            logging.info(f"[{self.symbol}] Preloading {config.WARMUP_HISTORY_MINUTES}m of history...")
+            end_dt = datetime.now()
+            duration = f"{config.WARMUP_HISTORY_MINUTES * 60} S"
+            
+            # Fetch 5s bars
+            bars_5s = self.tws_app.fetch_historical_bars(self.symbol, end_dt, duration=duration, bar_size="5 secs")
+            for b in bars_5s:
+                bar = Bar(b['date'], b['open'], b['high'], b['low'], b['close'], b['volume'], b['average'])
+                self.bars_5s.append(bar)
+            
+            # Fetch 1s bars
+            bars_1s = self.tws_app.fetch_historical_bars(self.symbol, end_dt, duration=duration, bar_size="1 secs")
+            for b in bars_1s:
+                bar = Bar(b['date'], b['open'], b['high'], b['low'], b['close'], b['volume'], b['average'])
+                self.bars_1s.append(bar)
+                
+            logging.info(f"[{self.symbol}] Preloaded {len(self.bars_1s)} 1s-bars and {len(self.bars_5s)} 5s-bars.")
+        except Exception as e:
+            logging.error(f"[{self.symbol}] History preload failed: {e}. Falling back to time-based warm-up.")
 
     def on_tick(self, symbol, price, size, vwap, timestamp, bid, ask):
         self.market_data.timestamp = timestamp
@@ -87,6 +114,19 @@ class SymbolMonitor:
         self.market_data.med_vol_5s = mv5
         self.market_data.med_range_5s = mr5
 
+        # Warm-up check
+        if self.state == "WARMUP":
+            bars_ok = (len(self.bars_1s) >= config.WARMUP_MIN_1S_BARS and 
+                       len(self.bars_5s) >= config.WARMUP_MIN_5S_BARS)
+            time_ok = (datetime.now() - self.warmup_start_time).total_seconds() >= config.WARMUP_FALLBACK_SECONDS
+            
+            if bars_ok or time_ok:
+                self.state = "IDLE"
+                self.last_reason = "WARMUP_COMPLETE"
+                logging.info(f"[{self.symbol}] Warm-up complete. 1s bars: {len(self.bars_1s)}, 5s bars: {len(self.bars_5s)}")
+            else:
+                return # Still warming up
+
         pos = self.executor.get_position(self.symbol)
         if pos and pos['status'] == 'IN_TRADE':
             self.state = "IN_TRADE"
@@ -95,7 +135,7 @@ class SymbolMonitor:
                 if (datetime.now() - self.arm_time).total_seconds() > config.ARM_TIMEOUT_SECONDS:
                     self.state = "IDLE"
                     self.last_reason = "ARM_TIMEOUT"
-            elif self.state != "SUBMITTING":
+            elif self.state != "SUBMITTING" and self.state != "WARMUP":
                 self.state = "IDLE"
 
         if self.state == "IDLE":

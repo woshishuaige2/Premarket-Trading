@@ -97,3 +97,11 @@ BACKTEST_1S_WHAT_TO_SHOW = "TRADES"  # Use TRADES for accurate volume data (MIDP
 # DEBUG SETTINGS
 # =============================================================================
 DEBUG_TIME_WINDOW = "08:00"        # Set to "HH:MM" (e.g., "09:16") to enable detailed debug output for that minute, None to disable
+
+# =============================================================================
+# WARM-UP SETTINGS
+# =============================================================================
+WARMUP_MIN_1S_BARS = 120        # Minimum 1s bars needed to trade
+WARMUP_MIN_5S_BARS = 24         # Minimum 5s bars needed to trade
+WARMUP_HISTORY_MINUTES = 5      # How many minutes of history to preload
+WARMUP_FALLBACK_SECONDS = 180   # Fallback warm-up time if history fetch fails
