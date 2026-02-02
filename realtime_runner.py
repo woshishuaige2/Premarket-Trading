@@ -79,6 +79,16 @@ class SymbolMonitor:
         self.market_data.ask_time = timestamp
         
         self._update_bars(price, size, vwap, timestamp)
+
+    def on_timer(self):
+        """Called periodically to ensure state machine runs even without ticks."""
+        now = datetime.now()
+        # If we haven't received a tick yet, use current time for timestamp
+        if not self.market_data.timestamp or (now - self.market_data.timestamp).total_seconds() > 1.0:
+            self.market_data.timestamp = now
+            
+        # Close current bars if needed based on time
+        self._update_bars(self.market_data.price, 0, self.market_data.vwap, now)
         self._process_state_machine()
 
     def _update_bars(self, price, size, vwap, ts):
@@ -261,6 +271,9 @@ def run():
 
     try:
         while True:
+            # Run timer-based updates for all monitors
+            for m in monitors.values():
+                m.on_timer()
             time.sleep(1)
     except KeyboardInterrupt:
         print("\n[INFO] Stopping...")

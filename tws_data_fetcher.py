@@ -163,19 +163,33 @@ class TWSDataApp(EClient, EWrapper):
             
         tt = tick_type_str(tickType)
         
+        trigger = False
         if tt == 'LAST':
             with self.lock:
                 self.realtime_data[symbol]['price'] = price
+            trigger = True
         elif tt == 'BID':
             with self.lock:
                 self.realtime_data[symbol]['bid'] = price
+            trigger = True
         elif tt == 'ASK':
             with self.lock:
                 self.realtime_data[symbol]['ask'] = price
+            trigger = True
         elif tt == 'RT_VWAP':
-            # This is the real-time VWAP provided directly by TWS
             with self.lock:
                 self.realtime_data[symbol]['vwap'] = price
+            trigger = True
+            
+        if trigger:
+            with self.lock:
+                price = self.realtime_data[symbol]['price']
+                vwap = self.realtime_data[symbol]['vwap']
+                bid = self.realtime_data[symbol]['bid']
+                ask = self.realtime_data[symbol]['ask']
+                volume = self.realtime_data[symbol]['volume']
+            if price > 0:
+                callback(symbol, price, volume, vwap, datetime.now(), bid, ask)
     
     def tickSize(self, reqId: TickerId, tickType: int, size: int):
         """Handle size ticks"""
@@ -193,45 +207,52 @@ class TWSDataApp(EClient, EWrapper):
         
         tt = tick_type_str(tickType)
         
+        trigger = False
         if tt == 'LAST_SIZE':
             with self.lock:
                 self.realtime_data[symbol]['last_size'] = size
+            trigger = True
         elif tt == 'BID_SIZE':
             with self.lock:
                 self.realtime_data[symbol]['bid_size'] = size
+            trigger = True
         elif tt == 'ASK_SIZE':
             with self.lock:
                 self.realtime_data[symbol]['ask_size'] = size
+            trigger = True
         elif tt == 'VOLUME':
             with self.lock:
                 self.realtime_data[symbol]['volume'] = size
                 
-                # Trigger callback when we have price and volume update
+                # If TWS hasn't provided RT_VWAP yet, calculate our own as fallback
                 price = self.realtime_data[symbol]['price']
-                if price > 0:
-                    # If TWS hasn't provided RT_VWAP yet, calculate our own as fallback
-                    if self.realtime_data[symbol]['vwap'] == 0:
-                        # Initialize cumulative tracking if not present
-                        if 'cumulative_pv' not in self.realtime_data[symbol]:
-                            self.realtime_data[symbol]['cumulative_pv'] = 0.0
-                            self.realtime_data[symbol]['cumulative_volume'] = 0.0
-                        
-                        current_daily_volume = size
-                        last_daily_volume = self.realtime_data[symbol].get('last_daily_volume', 0)
-                        volume_increment = current_daily_volume - last_daily_volume
-                        
-                        if volume_increment > 0:
-                            self.realtime_data[symbol]['cumulative_pv'] += price * volume_increment
-                            self.realtime_data[symbol]['cumulative_volume'] += volume_increment
-                            self.realtime_data[symbol]['last_daily_volume'] = current_daily_volume
-                        
-                        if self.realtime_data[symbol]['cumulative_volume'] > 0:
-                            self.realtime_data[symbol]['vwap'] = self.realtime_data[symbol]['cumulative_pv'] / self.realtime_data[symbol]['cumulative_volume']
+                if price > 0 and self.realtime_data[symbol]['vwap'] == 0:
+                    if 'cumulative_pv' not in self.realtime_data[symbol]:
+                        self.realtime_data[symbol]['cumulative_pv'] = 0.0
+                        self.realtime_data[symbol]['cumulative_volume'] = 0.0
                     
-                    vwap = self.realtime_data[symbol]['vwap']
-                    bid = self.realtime_data[symbol].get('bid', 0.0)
-                    ask = self.realtime_data[symbol].get('ask', 0.0)
-                    callback(symbol, price, size, vwap, datetime.now(), bid, ask)
+                    current_daily_volume = size
+                    last_daily_volume = self.realtime_data[symbol].get('last_daily_volume', 0)
+                    volume_increment = current_daily_volume - last_daily_volume
+                    
+                    if volume_increment > 0:
+                        self.realtime_data[symbol]['cumulative_pv'] += price * volume_increment
+                        self.realtime_data[symbol]['cumulative_volume'] += volume_increment
+                        self.realtime_data[symbol]['last_daily_volume'] = current_daily_volume
+                    
+                    if self.realtime_data[symbol]['cumulative_volume'] > 0:
+                        self.realtime_data[symbol]['vwap'] = self.realtime_data[symbol]['cumulative_pv'] / self.realtime_data[symbol]['cumulative_volume']
+            trigger = True
+            
+        if trigger:
+            with self.lock:
+                price = self.realtime_data[symbol]['price']
+                vwap = self.realtime_data[symbol]['vwap']
+                bid = self.realtime_data[symbol]['bid']
+                ask = self.realtime_data[symbol]['ask']
+                volume = self.realtime_data[symbol]['volume']
+            if price > 0:
+                callback(symbol, price, volume, vwap, datetime.now(), bid, ask)
     
     def get_next_req_id(self):
         """Get next request ID"""
