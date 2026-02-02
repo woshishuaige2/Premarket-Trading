@@ -147,14 +147,22 @@ def draw_dashboard(monitors: Dict[str, SymbolMonitor], executor: ExecutionEngine
             print("="*100)
             
             # STAGE 1: MONITORING
-            print(f"{'SYMBOL':<8} | {'PRICE':<8} | {'VWAP':<8} | {'BID/ASK':<15} | {'STATE':<10} | {'LAST EVENT'}")
-            print("-" * 100)
+            header = f"{'SYMBOL':<8} | {'PRICE':<7} | {'VWAP':<7} | {'BID/ASK':<13} | {'VOL 1s (MED)':<15} | {'VOL 5s (MED)':<15} | {'STATE':<8} | {'EVENT'}"
+            print(header)
+            print("-" * len(header))
             for sym in config.WATCHLIST:
                 m = monitors.get(sym)
                 if not m: continue
                 md = m.market_data
                 ba = f"{md.bid:.2f}/{md.ask:.2f}"
-                print(f"{sym:<8} | {md.price:<8.2f} | {md.vwap:<8.2f} | {ba:<15} | {m.state:<10} | {m.last_reason}")
+                
+                # Get current bar volumes and medians
+                v1 = m.bars_1s[-1].volume if m.bars_1s else 0
+                v5 = m.bars_5s[-1].volume if m.bars_5s else 0
+                vol1_str = f"{v1:<5.0f} ({md.med_vol_1s:<5.0f})"
+                vol5_str = f"{v5:<5.0f} ({md.med_vol_5s:<5.0f})"
+                
+                print(f"{sym:<8} | {md.price:<7.2f} | {md.vwap:<7.2f} | {ba:<13} | {vol1_str:<15} | {vol5_str:<15} | {m.state:<8} | {m.last_reason}")
             
             # STAGE 2: ACTIVE POSITIONS
             print("\n" + "="*100)

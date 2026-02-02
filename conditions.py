@@ -135,7 +135,8 @@ class StrategyLogic:
         
         is_confirm = (ret_5s >= config.CONFIRM_RET_5S and 
                       last_5s.volume >= config.CONFIRM_VOL_MULT_5S * data.med_vol_5s and
-                      range_5s >= config.RANGE_MULT_5S * data.med_range_5s)
+                      range_5s >= config.RANGE_MULT_5S * data.med_range_5s and
+                      data.price >= 1.05 * data.vwap)
         
         reason = f"Confirm: {ret_5s:.2%} ret, {last_5s.volume:.0f} vol, {range_5s:.3f} range"
         return is_confirm, reason
