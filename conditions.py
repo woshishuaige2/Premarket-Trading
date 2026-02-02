@@ -89,39 +89,23 @@ class StrategyLogic:
 
     @staticmethod
     def check_shock_1s(data: MarketData) -> Tuple[bool, str]:
-        """LAYER A: SHOCK DETECTOR (1-second OR 2-second alternative)."""
+        """LAYER A: SHOCK DETECTOR (1 second)."""
         if not data.bars_1s:
             return False, "No 1s data"
             
-        # Check 1: Single 1-second bar shock
         last_1s = data.bars_1s[-1]
+        
+        # Avoid division by zero
+        if last_1s.open == 0:
+            return False, "Invalid bar: open=0"
+        
         ret_1s = (last_1s.close - last_1s.open) / last_1s.open
-        shock_1s = (ret_1s >= config.SHOCK_RET_1S and 
+        
+        is_shock = (ret_1s >= config.SHOCK_RET_1S and 
                     last_1s.volume >= config.SHOCK_VOL_MULT_1S * data.med_vol_1s)
         
-        if shock_1s:
-            reason = f"Shock-1s: {ret_1s:.2%} ret, {last_1s.volume:.0f} vol (vs {data.med_vol_1s:.0f} med)"
-            return True, reason
-        
-        # Check 2: Alternative 2-second combined shock
-        if len(data.bars_1s) >= 2:
-            last_2_bars = data.bars_1s[-2:]
-            first_bar = last_2_bars[0]
-            last_bar = last_2_bars[1]
-            
-            ret_2s = (last_bar.close - first_bar.open) / first_bar.open
-            vol_2s = first_bar.volume + last_bar.volume
-            
-            shock_2s = (ret_2s >= config.SHOCK_RET_2S and 
-                        vol_2s >= config.SHOCK_VOL_MULT_2S * data.med_vol_1s)
-            
-            if shock_2s:
-                reason = f"Shock-2s: {ret_2s:.2%} ret over 2 bars, {vol_2s:.0f} vol (vs {data.med_vol_1s:.0f} med)"
-                return True, reason
-        
-        # Neither condition met
-        reason = f"No shock: 1s={ret_1s:.2%}, vol={last_1s.volume:.0f} (med={data.med_vol_1s:.0f})"
-        return False, reason
+        reason = f"Shock: {ret_1s:.2%} ret, {last_1s.volume:.0f} vol (vs {data.med_vol_1s:.0f} med)"
+        return is_shock, reason
 
     @staticmethod
     def check_confirm_5s(data: MarketData) -> Tuple[bool, str]:
@@ -130,6 +114,11 @@ class StrategyLogic:
             return False, "No 5s data"
             
         last_5s = data.bars_5s[-1]
+        
+        # Avoid division by zero
+        if last_5s.open == 0:
+            return False, "Invalid bar: open=0"
+        
         ret_5s = (last_5s.close - last_5s.open) / last_5s.open
         range_5s = last_5s.high - last_5s.low
         
@@ -159,8 +148,20 @@ class StrategyLogic:
             
         # Filter bars within the window
         now = bars[-1].timestamp
+        if isinstance(now, str):
+            # Parse string timestamp - IBKR format: "YYYYMMDD  HH:MM:SS"
+            now = datetime.strptime(now.strip(), "%Y%m%d  %H:%M:%S")
+        
         cutoff = now - timedelta(seconds=window_seconds)
-        window_bars = [b for b in bars if b.timestamp >= cutoff]
+        
+        # Filter bars, handling both datetime and string timestamps
+        window_bars = []
+        for b in bars:
+            ts = b.timestamp
+            if isinstance(ts, str):
+                ts = datetime.strptime(ts.strip(), "%Y%m%d  %H:%M:%S")
+            if ts >= cutoff:
+                window_bars.append(b)
         
         if len(window_bars) < 5: # If not enough history, use all available bars
             window_bars = bars[-10:]

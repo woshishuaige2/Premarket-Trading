@@ -79,7 +79,7 @@ ARM_TIMEOUT_SECONDS = 3.0
 # =============================================================================
 INVESTMENT_PER_TRADE = 500.0
 ACCOUNT_NUMBER = "DUO200259"     # Replace with actual IBKR account
-WATCHLIST = ["TWNP", "PMN"]
+WATCHLIST = ["VHUB", "SXTC","DKI","CISS"]
 
 # =============================================================================
 # COMMISSION STRUCTURE (IBKR)
