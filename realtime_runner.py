@@ -9,7 +9,7 @@ from datetime import datetime, timedelta
 from collections import deque
 from typing import Dict, List, Optional
 import strategy_config as config
-from conditions import MarketData, Bar, StrategyLogic
+from conditions import MarketData, StrategyLogic
 from execution_engine import ExecutionEngine
 from tws_data_fetcher import create_tws_data_app
 

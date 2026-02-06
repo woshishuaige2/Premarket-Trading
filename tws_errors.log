@@ -629,3 +629,8 @@ of version 954.1 or newer:  TWS: 7497; IB Gateway: 4002
 2026-02-02 07:35:11.464240: ReqId=2011, Code=2176, Msg=Warning: Your API version does not support fractional share size rules. Please upgrade to a minimum version 163. Trimmed value 2153.63 to 2153
 2026-02-02 07:35:11.658195: ReqId=2013, Code=2176, Msg=Warning: Your API version does not support fractional share size rules. Please upgrade to a minimum version 163. Trimmed value 1763.63 to 1763
 2026-02-02 07:35:12.062098: ReqId=2015, Code=2176, Msg=Warning: Your API version does not support fractional share size rules. Please upgrade to a minimum version 163. Trimmed value 610.41 to 610
+2026-02-06 17:00:53.899098: ReqId=-1, Code=502, Msg=Couldn't connect to TWS. Confirm that "Enable ActiveX and Socket EClients" 
+is enabled and connection port is the same as "Socket Port" on the 
+TWS "Edit->Global Configuration...->API->Settings" menu. Live Trading ports: 
+TWS: 7496; IB Gateway: 4001. Simulated Trading ports for new installations 
+of version 954.1 or newer:  TWS: 7497; IB Gateway: 4002

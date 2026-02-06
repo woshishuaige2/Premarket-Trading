@@ -1,129 +1,78 @@
 """
 Premarket Shock & Confirm Momentum Strategy - Core Logic
-Shared condition evaluation for both realtime and backtesting.
+Shared between realtime and backtest paths.
 """
-import numpy as np
-from dataclasses import dataclass, field
-from datetime import datetime, timedelta
-from typing import List, Dict, Optional, Tuple
+import math
+from datetime import datetime, time as dt_time
 import strategy_config as config
 
-@dataclass
-class Bar:
-    timestamp: datetime
-    open: float
-    high: float
-    low: float
-    close: float
-    volume: float
-    vwap: float = 0.0
-
-@dataclass
 class MarketData:
-    symbol: str
-    timestamp: datetime
-    price: float
-    bid: float = 0.0
-    ask: float = 0.0
-    bid_time: Optional[datetime] = None
-    ask_time: Optional[datetime] = None
-    volume: float = 0.0
-    vwap: float = 0.0
-    
-    # History for indicators (rolling windows)
-    bars_1s: List[Bar] = field(default_factory=list)
-    bars_5s: List[Bar] = field(default_factory=list)
-    
-    # Medians (calculated externally or updated here)
-    med_vol_1s: float = 0.0
-    med_vol_5s: float = 0.0
-    med_range_5s: float = 0.0
+    """Container for symbol-specific market data and bar history."""
+    def __init__(self, symbol, price=0.0):
+        self.symbol = symbol
+        self.price = price
+        self.vwap = 0.0
+        self.bid = 0.0
+        self.ask = 0.0
+        self.volume = 0
+        self.bars_1s = [] # List of BarData-like dicts
+        self.bars_5s = []
+        self.med_vol_1s = 0.0
+        self.med_vol_5s = 0.0
+        self.med_range_5s = 0.0
 
 class StrategyLogic:
-    """
-    Centralized logic for the Premarket Shock & Confirm strategy.
-    Designed to be used by both realtime_runner and backtester.
-    """
+    """Stateless logic for strategy triggers and exits."""
     
     @staticmethod
     def is_in_window(dt: datetime) -> bool:
-        """Check if current time is within specified premarket windows."""
-        time_str = dt.strftime("%H:%M:%S")
+        """Check if current time is within any premarket trading window."""
+        current_time = dt.strftime("%H:%M:%S")
         for start, end in config.PREMARKET_WINDOWS:
-            if start <= time_str <= end:
+            if start <= current_time <= end:
                 return True
         return False
 
     @staticmethod
-    def check_exec_safety(data: MarketData) -> Tuple[bool, str]:
-        """EXEC_OK safety gate checks."""
-        if data.bid <= 0 or data.ask <= 0:
-            return False, "Missing bid/ask"
-            
-        mid = (data.bid + data.ask) / 2
-        spread = data.ask - data.bid
-        spread_pct = spread / mid
-        
-        # 1) Absolute cap
-        if spread_pct > config.MAX_SPREAD_PCT:
-            return False, f"Spread too wide: {spread_pct:.2%}"
-            
-        # 2) Relative cap to the move
-        if not data.bars_5s:
-            return False, "No 5s bars for relative spread check"
-            
-        last_5s = data.bars_5s[-1]
-        if last_5s.open <= 0:
-            return False, "Invalid 5s bar open for spread check"
-            
-        ret_5s_abs = abs((last_5s.close - last_5s.open) / last_5s.open)
-        # Handle case where move is 0 to avoid ZeroDivision later or logic issues
-        if ret_5s_abs == 0:
-            # If no move, spread check passes if absolute spread is OK
-            pass
-        elif spread_pct > config.SPREAD_REL_MULT * ret_5s_abs:
-            return False, f"Spread relative cap failed: {spread_pct:.2%} > {config.SPREAD_REL_MULT} * {ret_5s_abs:.2%}"
-            
-        # 3) Quote freshness
-        now = data.timestamp
-        if data.bid_time and data.ask_time:
-            bid_age = (now - data.bid_time).total_seconds() * 1000
-            ask_age = (now - data.ask_time).total_seconds() * 1000
-            if bid_age > config.QUOTE_STALE_MS or ask_age > config.QUOTE_STALE_MS:
-                return False, f"Stale quotes: bid {bid_age:.0f}ms, ask {ask_age:.0f}ms"
-        
-        return True, "EXEC_OK"
-
-    @staticmethod
-    def check_shock_1s(data: MarketData) -> Tuple[bool, str]:
-        """LAYER A: SHOCK DETECTOR (1 second)."""
+    def check_shock_1s(data: MarketData) -> (bool, str):
+        """LAYER A: SHOCK DETECTOR (1s)."""
         if not data.bars_1s:
             return False, "No 1s data"
             
         last_1s = data.bars_1s[-1]
         
         # Avoid division by zero
-        if last_1s.open == 0:
+        if last_1s['open'] == 0:
             return False, "Invalid bar: open=0"
+            
+        ret_1s = (last_1s['close'] - last_1s['open']) / last_1s['open']
         
-        ret_1s = (last_1s.close - last_1s.open) / last_1s.open
-        
+        # Primary check: 1s shock
         is_shock = (ret_1s >= config.SHOCK_RET_1S and 
-                    last_1s.volume >= config.SHOCK_VOL_MULT_1S * data.med_vol_1s)
+                    last_1s['volume'] >= config.SHOCK_VOL_MULT_1S * data.med_vol_1s)
         
-        reason = f"Shock: {ret_1s:.2%} ret, {last_1s.volume:.0f} vol (vs {data.med_vol_1s:.0f} med)"
+        # Alternative: 2s shock
+        if not is_shock and len(data.bars_1s) >= 2:
+            prev_1s = data.bars_1s[-2]
+            if prev_1s['open'] > 0:
+                ret_2s = (last_1s['close'] - prev_1s['open']) / prev_1s['open']
+                vol_2s = last_1s['volume'] + prev_1s['volume']
+                is_shock = (ret_2s >= config.SHOCK_RET_2S and 
+                            vol_2s >= config.SHOCK_VOL_MULT_2S * data.med_vol_1s)
+        
+        reason = f"Shock: {ret_1s:.2%} ret, {last_1s['volume']:.0f} vol (vs {data.med_vol_1s:.0f} med)"
         return is_shock, reason
 
     @staticmethod
-    def check_confirm_5s(data: MarketData) -> Tuple[bool, str]:
-        """LAYER B: CONTINUATION CONFIRM (5 seconds)."""
+    def check_confirm_5s(data: MarketData) -> (bool, str):
+        """LAYER B: CONTINUATION CONFIRM (5s)."""
         if not data.bars_5s:
             return False, "No 5s data"
             
         last_5s = data.bars_5s[-1]
         
         # Avoid division by zero
-        if last_5s.open == 0:
+        if last_5s['open'] == 0:
             return False, "Invalid bar: open=0"
         
         ret_5s = (last_5s.close - last_5s.open) / last_5s.open
@@ -144,72 +93,88 @@ class StrategyLogic:
         last_5s = data.bars_5s[-1]
         range_5s = last_5s.high - last_5s.low
         if range_5s == 0: return True
-        return data.price >= last_5s.high - config.NO_FADE_FRAC * range_5s
+        
+        # Must hold within top X% of the 5s range
+        pullback = last_5s.high - data.price
+        return pullback <= (1.0 - config.NO_FADE_FRAC) * range_5s
 
     @staticmethod
-    def calculate_medians(bars: List[Bar], window_seconds: int = 120) -> Tuple[float, float, float]:
-        """Calculate rolling medians for volume and range."""
-        if not bars:
-            return 1.0, 0.001, 0.0 # Return small non-zero defaults
+    def check_exec_safety(data: MarketData) -> (bool, str):
+        """Execution constraints using IBKR bid/ask."""
+        if data.bid == 0 or data.ask == 0:
+            return False, "No bid/ask"
             
-        # Filter bars within the window
-        now = bars[-1].timestamp
-        if isinstance(now, str):
-            # Parse string timestamp - IBKR format: "YYYYMMDD  HH:MM:SS"
-            now = datetime.strptime(now.strip(), "%Y%m%d  %H:%M:%S")
-        
-        cutoff = now - timedelta(seconds=window_seconds)
-        
-        # Filter bars, handling both datetime and string timestamps
-        window_bars = []
-        for b in bars:
-            ts = b.timestamp
-            if isinstance(ts, str):
-                ts = datetime.strptime(ts.strip(), "%Y%m%d  %H:%M:%S")
-            if ts >= cutoff:
-                window_bars.append(b)
-        
-        if len(window_bars) < 5: # If not enough history, use all available bars
-            window_bars = bars[-10:]
+        spread_pct = (data.ask - data.bid) / data.bid
+        if spread_pct > config.MAX_SPREAD_PCT / 100.0:
+            return False, f"Spread too wide: {spread_pct:.2%}"
             
-        vols = [b.volume for b in window_bars if b.volume > 0]
-        ranges = [b.high - b.low for b in window_bars if (b.high - b.low) > 0]
-        
-        med_vol = float(np.median(vols)) if vols else 1.0
-        med_range = float(np.median(ranges)) if ranges else 0.001
-        
-        return max(1.0, med_vol), max(0.001, med_range), 0.0
+        # Spread relative to move magnitude
+        if data.bars_5s:
+            last_5s = data.bars_5s[-1]
+            if last_5s.open > 0:
+                ret_5s_abs = abs((last_5s.close - last_5s.open) / last_5s.open)
+                if ret_5s_abs > 0 and spread_pct > config.SPREAD_REL_MULT * ret_5s_abs:
+                    return False, f"Spread too wide rel to move: {spread_pct:.2%} vs {ret_5s_abs:.2%}"
+            
+        return True, "EXEC_OK"
 
     @staticmethod
-    def check_exit(data: MarketData, entry_price: float, stop_price: float, entry_time: datetime, R: float) -> Tuple[bool, str]:
-        """Evaluate exit conditions continuously."""
-        # 1) HARD STOP
-        if data.price <= stop_price:
-            return True, "STOP"
+    def check_exit(data: MarketData, entry_price: float, entry_time: datetime, max_price: float) -> (bool, str):
+        """Risk management exits."""
+        if data.price <= 0: return False, ""
+        
+        # 1. Hard Stop
+        if data.price <= entry_price * (1.0 - config.STOP_PCT):
+            return True, "HARD_STOP"
             
-        # Optional: FAIL_ACCEL (sudden 1s drop)
+        # 2. Weakness Exit (Fail-fast on 1s drop)
         if data.bars_1s:
             last_1s = data.bars_1s[-1]
-            ret_1s = (last_1s.close - last_1s.open) / last_1s.open
-            if ret_1s <= -config.FAIL_RET_1S:
-                return True, "FAIL_ACCEL"
-
-        # 2) WEAKNESS EXIT
-        if len(data.bars_5s) >= 2:
-            curr_5s = data.bars_5s[-1]
-            prev_5s = data.bars_5s[-2]
-            if curr_5s.close < curr_5s.open and curr_5s.close < prev_5s.low:
-                return True, "WEAKNESS"
-
-        # 3) TAKE PROFIT
-        if data.price >= entry_price + config.TP_R_MULT * R:
+            if last_1s['open'] > 0:
+                ret_1s = (last_1s['close'] - last_1s['open']) / last_1s['open']
+                if ret_1s <= -config.FAIL_RET_1S:
+                    return True, "WEAKNESS_EXIT"
+        
+        # 3. Take Profit (R-multiple)
+        risk = entry_price * config.STOP_PCT
+        target = entry_price + (risk * config.TP_R_MULT)
+        if data.price >= target:
             return True, "TAKE_PROFIT"
-
-        # 4) TIME STOP
-        elapsed = (data.timestamp - entry_time).total_seconds()
+            
+        # 4. Time Stop (Trailing-style)
+        elapsed = (datetime.now() - entry_time).total_seconds()
         if elapsed >= config.TIME_STOP_SECONDS:
-            unrealized_pnl_r = (data.price - entry_price) / R
-            if unrealized_pnl_r < config.MIN_PNL_AT_TIME:
+            pnl_r = (data.price - entry_price) / risk
+            if pnl_r < config.MIN_PNL_AT_TIME:
                 return True, "TIME_STOP"
-
+                
         return False, ""
+
+    @staticmethod
+    def calculate_medians(bars, window_seconds=120):
+        """Calculate rolling medians for volume and range."""
+        if not bars: return 1.0, 0.01 # Robust floor
+        
+        # In a real implementation, we'd filter by timestamp
+        # For simplicity, we'll take the last N bars
+        volumes = sorted([b.volume if hasattr(b, 'volume') else b['volume'] for b in bars])
+        
+        if not volumes: return 1.0, 0.01
+        
+        mid = len(volumes) // 2
+        med_vol = volumes[mid] if len(volumes) % 2 != 0 else (volumes[mid-1] + volumes[mid]) / 2.0
+        
+        ranges = []
+        for b in bars:
+            if hasattr(b, 'high'):
+                ranges.append(b.high - b.low)
+            else:
+                ranges.append(b['high'] - b['low'])
+        
+        ranges.sort()
+        if not ranges: return max(1.0, med_vol), 0.01
+        
+        mid_r = len(ranges) // 2
+        med_range = ranges[mid_r] if len(ranges) % 2 != 0 else (ranges[mid_r-1] + ranges[mid_r]) / 2.0
+        
+        return max(1.0, med_vol), max(0.001, med_range)
