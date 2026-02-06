@@ -285,10 +285,10 @@ def run():
             for m in monitors.values():
                 m.on_timer()
             
-            # Non-blocking check for user input to force trigger
-            import select
+            # Non-blocking check for user input to force trigger (Windows-compatible)
+            import msvcrt
             import sys
-            if select.select([sys.stdin], [], [], 0)[0]:
+            if msvcrt.kbhit():
                 line = sys.stdin.readline()
                 first_sym = config.WATCHLIST[0]
                 m = monitors[first_sym]
