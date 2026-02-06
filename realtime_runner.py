@@ -249,9 +249,11 @@ def draw_dashboard(monitors: Dict[str, SymbolMonitor], executor: ExecutionEngine
 
 def run():
     logging.info("Starting Premarket Strategy Runner...")
-    tws_app = create_tws_data_app(host="127.0.0.1", port=7497, client_id=777)
+    # Local connection to TWS (use ngrok host/port only when running remotely)
+    tws_app = create_tws_data_app(host="127.0.0.1", port=7497, client_id=1)
     if not tws_app:
         print("[ERROR] Could not connect to TWS.")
+        print("[DEBUG] Make sure TWS/IB Gateway is running and API is enabled on port 7497")
         return
 
     executor = ExecutionEngine(tws_app, config.ACCOUNT_NUMBER)

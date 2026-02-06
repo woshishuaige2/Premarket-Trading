@@ -433,13 +433,19 @@ class TWSDataApp(EClient, EWrapper):
             return None
 
 
-def create_tws_data_app(host="127.0.0.1", port=7497, client_id=0) -> Optional[TWSDataApp]:
+def create_tws_data_app(host="127.0.0.1", port=7497, client_id=2) -> Optional[TWSDataApp]:
     """Create and connect a TWS data application."""
     app = TWSDataApp()
+    print(f"[TWS] Attempting connection to {host}:{port} (client_id={client_id})...")
     try:
         app.connect(host, port, client_id)
     except Exception as e:
         print(f"[TWS] Connection error: {e}")
+        print(f"[TWS] Troubleshooting:")
+        print(f"      - Is TWS/IB Gateway running?")
+        print(f"      - Is API enabled in TWS? (File -> Global Config -> API -> Settings)")
+        print(f"      - Is the port correct? (Default: 7497 for TWS paper, 7496 for TWS live, 4002 for Gateway paper)")
+        print(f"      - Is client_id {client_id} whitelisted in TWS?")
         return None
     
     api_thread = threading.Thread(target=app.run, daemon=True)
@@ -447,10 +453,18 @@ def create_tws_data_app(host="127.0.0.1", port=7497, client_id=0) -> Optional[TW
     
     timeout = 10.0
     waited = 0.0
+    print(f"[TWS] Waiting for connection handshake...", end="", flush=True)
     while not app.connected and waited < timeout:
         time.sleep(0.1)
         waited += 0.1
+        if int(waited * 10) % 10 == 0:
+            print(".", end="", flush=True)
+    print()
     
     if not app.connected:
+        print(f"[TWS] Connection timeout after {timeout}s - TWS did not respond")
+        print(f"[TWS] Check TWS logs or tws_errors.log for more details")
         return None
+    
+    print(f"[TWS] Successfully connected!")
     return app
