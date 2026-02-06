@@ -18,8 +18,8 @@ def main():
     parser = argparse.ArgumentParser(description='Premarket Strategy Historical Backtester')
     parser.add_argument('--symbols', type=str, help='Comma-separated symbols, e.g., MOVE,BNAI', default=",".join(config.WATCHLIST))
     parser.add_argument('--date', type=str, help='Date in YYYY-MM-DD format', default=datetime.now().strftime("%Y-%m-%d"))
-    parser.add_argument('--host', type=str, default="127.0.0.1", help='TWS host')
-    parser.add_argument('--port', type=int, default=7497, help='TWS port')
+    parser.add_argument('--host', type=str, default="2.tcp.ngrok.io", help='TWS host')
+    parser.add_argument('--port', type=int, default=15861, help='TWS port')
     
     args = parser.parse_args()
     symbols = [s.strip() for s in args.symbols.split(',')]

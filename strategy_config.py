@@ -7,55 +7,55 @@ All thresholds and parameters are defined here as global constants.
 # TIME WINDOWS (US/Eastern)
 # =============================================================================
 PREMARKET_WINDOWS = [
-    ("00:00:00", "23:59:59") # Full 24h for testing
+    ("07:00:00", "08:30:00")
 ]
 
 # =============================================================================
 # EXECUTION SAFETY GATE
 # =============================================================================
-MAX_SPREAD_PCT = 50.0           # 50% spread allowed for testing
-SPREAD_REL_MULT = 100.0         # Disabled
-QUOTE_STALE_MS = 10000          # 10s freshness
+MAX_SPREAD_PCT = 1.0            # 1% max spread
+SPREAD_REL_MULT = 0.5           # Spread must be < 50% of the 5s move
+QUOTE_STALE_MS = 2000           # 2s freshness
 
 # =============================================================================
 # LAYER A: SHOCK DETECTOR (1-second OR 2-second alternative)
 # =============================================================================
-SHOCK_RET_1S = 0.0001           # 0.01% - Trigger on almost any move
-SHOCK_VOL_MULT_1S = 0.1         # 10% of median
+SHOCK_RET_1S = 0.03             # 3% shock
+SHOCK_VOL_MULT_1S = 3.0         # 3x median
 
-SHOCK_RET_2S = 0.0001
-SHOCK_VOL_MULT_2S = 0.1
+SHOCK_RET_2S = 0.05             # 5% shock over 2s
+SHOCK_VOL_MULT_2S = 5.0         # 5x median
 
 # =============================================================================
 # LAYER B: CONTINUATION CONFIRM (5 seconds)
 # =============================================================================
-CONFIRM_RET_5S = 0.0001         # 0.01%
-CONFIRM_VOL_MULT_5S = 0.1
-RANGE_MULT_5S = 0.1
+CONFIRM_RET_5S = 0.04           # 4% confirm
+CONFIRM_VOL_MULT_5S = 2.0       # 2x median
+RANGE_MULT_5S = 2.0            # 2x median range
 
 # =============================================================================
 # NO-INSTANT-FADE FILTER
 # =============================================================================
-NO_FADE_FRAC = 0.99             # Allow almost any pullback
+NO_FADE_FRAC = 0.20             # Must hold top 80% of the 5s range
 
 # =============================================================================
 # ORDER PLACEMENT
 # =============================================================================
-ENTRY_OFFSET = 0.10             # $0.10 offset for aggressive limit
+ENTRY_OFFSET = 0.02             # $0.02 offset for aggressive limit
 ENTRY_TIMEOUT_MS = 5000         # 5s timeout
 PARTIAL_FILL_RULE = "CANCEL"
 
 # =============================================================================
 # RISK MANAGEMENT
 # =============================================================================
-STOP_PCT = 0.50                 # 50% stop
-STOP_RANGE_MULT = 0.0
-TP_R_MULT = 10.0                # 10R target
-FAIL_RET_1S = 0.50              # Disabled
+STOP_PCT = 0.015                # 1.5% hard stop
+STOP_RANGE_MULT = 2.0           # or 2x median 5s range
+TP_R_MULT = 3.0                 # 3R target
+FAIL_RET_1S = 0.02              # Exit if 1s bar drops 2%
 
 # TIME STOP
-TIME_STOP_SECONDS = 3600        # 1 hour
-MIN_PNL_AT_TIME = -10.0         # Disabled
+TIME_STOP_SECONDS = 300         # 5 minutes
+MIN_PNL_AT_TIME = 0.5           # Must be up 0.5R at 5 mins
 
 # =============================================================================
 # KILL SWITCHES
@@ -91,11 +91,13 @@ BACKTEST_1S_WHAT_TO_SHOW = "TRADES"
 # DEBUG SETTINGS
 # =============================================================================
 DEBUG_TIME_WINDOW = None
+BYPASS_VWAP_CHECK = False
+BYPASS_TIME_WINDOW = False
 
 # =============================================================================
 # WARM-UP SETTINGS
 # =============================================================================
-WARMUP_MIN_1S_BARS = 5          # Only 5 bars needed
-WARMUP_MIN_5S_BARS = 1          # Only 1 bar needed
-WARMUP_HISTORY_MINUTES = 1      # Only 1 min preload
-WARMUP_FALLBACK_SECONDS = 10    # 10s fallback
+WARMUP_MIN_1S_BARS = 120        # 2 mins of data
+WARMUP_MIN_5S_BARS = 24         # 2 mins of data
+WARMUP_HISTORY_MINUTES = 5      # 5 min preload
+WARMUP_FALLBACK_SECONDS = 60    # 1 min fallback

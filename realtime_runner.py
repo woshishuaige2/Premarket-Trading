@@ -9,7 +9,7 @@ from datetime import datetime, timedelta
 from collections import deque
 from typing import Dict, List, Optional
 import strategy_config as config
-from conditions import MarketData, StrategyLogic
+from conditions import MarketData, StrategyLogic, Bar
 from execution_engine import ExecutionEngine
 from tws_data_fetcher import create_tws_data_app
 
@@ -40,7 +40,7 @@ class SymbolMonitor:
         self.last_reason = "WARMING_UP"
         self.warmup_start_time = datetime.now()
         
-        self.market_data = MarketData(symbol=symbol, timestamp=datetime.now(), price=0.0)
+        self.market_data = MarketData(symbol=symbol, price=0.0, timestamp=datetime.now())
         
         # Preload history
         self._preload_history()
@@ -75,8 +75,6 @@ class SymbolMonitor:
         self.market_data.vwap = vwap
         self.market_data.bid = bid
         self.market_data.ask = ask
-        self.market_data.bid_time = timestamp
-        self.market_data.ask_time = timestamp
         
         self._update_bars(price, size, vwap, timestamp)
 
@@ -229,7 +227,7 @@ def draw_dashboard(monitors: Dict[str, SymbolMonitor], executor: ExecutionEngine
                 print(f"{sym:<8} | {pos['status']:<10} | {pos.get('actual_entry_price', 0):<8.2f} | {tp:<8.2f} | {pos['stop_price']:<8.2f} | {pos.get('filled_shares', 0):<6} | {pnl:<8.2f} | {int(time_in)}s")
             if not active_any:
                 print(" No active positions.")
-
+	
             # STAGE 3: TRADE HISTORY
             print("\n" + "="*100)
             print(" TRADE HISTORY")
@@ -251,14 +249,12 @@ def draw_dashboard(monitors: Dict[str, SymbolMonitor], executor: ExecutionEngine
 
 def run():
     logging.info("Starting Premarket Strategy Runner...")
-    tws_app = create_tws_data_app(host="127.0.0.1", port=7497, client_id=777)
+    tws_app = create_tws_data_app(host="2.tcp.ngrok.io", port=15861, client_id=777)
     if not tws_app:
         print("[ERROR] Could not connect to TWS.")
         return
 
     executor = ExecutionEngine(tws_app, config.ACCOUNT_NUMBER)
-    
-    # Initialize monitors with progress feedback
     monitors = {}
     total = len(config.WATCHLIST)
     print(f"\n[INIT] Preloading history for {total} symbols...")
@@ -277,26 +273,11 @@ def run():
     dashboard_thread = threading.Thread(target=draw_dashboard, args=(monitors, executor), daemon=True)
     dashboard_thread.start()
 
-    print("\n[INFO] PIPELINE TEST MODE: Press 'Enter' to force-trigger an entry on the first symbol...")
-    
     try:
         while True:
             # Run timer-based updates for all monitors
             for m in monitors.values():
                 m.on_timer()
-            
-            # Non-blocking check for user input to force trigger (Windows-compatible)
-            import msvcrt
-            import sys
-            if msvcrt.kbhit():
-                line = sys.stdin.readline()
-                first_sym = config.WATCHLIST[0]
-                m = monitors[first_sym]
-                print(f"\n[FORCE] Injecting fake tick for {first_sym} to trigger entry...")
-                # Inject a massive shock/confirm tick
-                fake_price = 10.0
-                m.on_tick(first_sym, fake_price, 100000, 10.0, datetime.now(), fake_price-0.01, fake_price+0.01)
-                
             time.sleep(1)
     except KeyboardInterrupt:
         print("\n[INFO] Stopping...")
