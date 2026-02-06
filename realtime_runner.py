@@ -277,11 +277,26 @@ def run():
     dashboard_thread = threading.Thread(target=draw_dashboard, args=(monitors, executor), daemon=True)
     dashboard_thread.start()
 
+    print("\n[INFO] PIPELINE TEST MODE: Press 'Enter' to force-trigger an entry on the first symbol...")
+    
     try:
         while True:
             # Run timer-based updates for all monitors
             for m in monitors.values():
                 m.on_timer()
+            
+            # Non-blocking check for user input to force trigger
+            import select
+            import sys
+            if select.select([sys.stdin], [], [], 0)[0]:
+                line = sys.stdin.readline()
+                first_sym = config.WATCHLIST[0]
+                m = monitors[first_sym]
+                print(f"\n[FORCE] Injecting fake tick for {first_sym} to trigger entry...")
+                # Inject a massive shock/confirm tick
+                fake_price = 10.0
+                m.on_tick(first_sym, fake_price, 100000, 10.0, datetime.now(), fake_price-0.01, fake_price+0.01)
+                
             time.sleep(1)
     except KeyboardInterrupt:
         print("\n[INFO] Stopping...")

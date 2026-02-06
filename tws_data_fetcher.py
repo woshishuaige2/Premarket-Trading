@@ -378,7 +378,8 @@ class TWSDataApp(EClient, EWrapper):
                     'volume': 0, 'vwap': 0.0, 'syncing': True
                 }
         
-        self.reqMarketDataType(1)
+        # Use market data type 1 (live) or 3 (delayed) depending on your subscription
+        self.reqMarketDataType(3) # Use delayed data if live is not available
         # genericTickList 233 is for RT_VWAP
         self.reqMktData(
             reqId=req_id,
