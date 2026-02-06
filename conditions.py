@@ -73,8 +73,15 @@ class StrategyLogic:
             return False, "No 5s bars for relative spread check"
             
         last_5s = data.bars_5s[-1]
+        if last_5s.open <= 0:
+            return False, "Invalid 5s bar open for spread check"
+            
         ret_5s_abs = abs((last_5s.close - last_5s.open) / last_5s.open)
-        if spread_pct > config.SPREAD_REL_MULT * ret_5s_abs:
+        # Handle case where move is 0 to avoid ZeroDivision later or logic issues
+        if ret_5s_abs == 0:
+            # If no move, spread check passes if absolute spread is OK
+            pass
+        elif spread_pct > config.SPREAD_REL_MULT * ret_5s_abs:
             return False, f"Spread relative cap failed: {spread_pct:.2%} > {config.SPREAD_REL_MULT} * {ret_5s_abs:.2%}"
             
         # 3) Quote freshness
