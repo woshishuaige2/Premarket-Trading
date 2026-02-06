@@ -707,3 +707,8 @@ of version 954.1 or newer:  TWS: 7497; IB Gateway: 4002
 2026-02-06 17:18:07.884072: ReqId=-1, Code=326, Msg=Unable to connect as the client id is already in use. Retry with a unique client id.
 2026-02-06 17:18:25.990203: ReqId=4, Code=10268, Msg=The 'EtradeOnly' order attribute is not supported.
 2026-02-06 17:18:31.110405: ReqId=4, Code=10147, Msg=OrderId 4 that needs to be cancelled is not found.
+2026-02-06 17:48:23.213710: ReqId=-1, Code=502, Msg=Couldn't connect to TWS. Confirm that "Enable ActiveX and Socket EClients" 
+is enabled and connection port is the same as "Socket Port" on the 
+TWS "Edit->Global Configuration...->API->Settings" menu. Live Trading ports: 
+TWS: 7496; IB Gateway: 4001. Simulated Trading ports for new installations 
+of version 954.1 or newer:  TWS: 7497; IB Gateway: 4002

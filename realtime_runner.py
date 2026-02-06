@@ -160,6 +160,13 @@ class SymbolMonitor:
             safety_ok, s_reason = StrategyLogic.check_exec_safety(self.market_data)
             no_fade = StrategyLogic.check_no_fade(self.market_data)
             
+            if not confirm_ok:
+                self.last_reason = f"WAIT_CONFIRM: {c_reason}"
+            elif not safety_ok:
+                self.last_reason = f"WAIT_SAFETY: {s_reason}"
+            elif not no_fade:
+                self.last_reason = "WAIT_NO_FADE"
+
             if confirm_ok and safety_ok and no_fade:
                 last_5s = self.market_data.bars_5s[-1]
                 med_range = self.market_data.med_range_5s
@@ -250,7 +257,7 @@ def draw_dashboard(monitors: Dict[str, SymbolMonitor], executor: ExecutionEngine
 def run():
     logging.info("Starting Premarket Strategy Runner...")
     # Local connection to TWS (use ngrok host/port only when running remotely)
-    tws_app = create_tws_data_app(host="127.0.0.1", port=7497, client_id=1)
+    tws_app = create_tws_data_app(host="127.0.0.1", port=7497, client_id=777)
     if not tws_app:
         print("[ERROR] Could not connect to TWS.")
         print("[DEBUG] Make sure TWS/IB Gateway is running and API is enabled on port 7497")
