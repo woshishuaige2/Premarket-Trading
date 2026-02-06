@@ -273,11 +273,48 @@ def run():
     dashboard_thread = threading.Thread(target=draw_dashboard, args=(monitors, executor), daemon=True)
     dashboard_thread.start()
 
+    print("\n[INFO] PIPELINE TEST MODE: Press 'Enter' to force-trigger an entry on the first symbol...")
+    
     try:
         while True:
             # Run timer-based updates for all monitors
             for m in monitors.values():
                 m.on_timer()
+            
+            # Non-blocking check for user input to force trigger (Cross-platform)
+            try:
+                import msvcrt
+                if msvcrt.kbhit():
+                    msvcrt.getch() # Clear buffer
+                    first_sym = config.WATCHLIST[0]
+                    m = monitors[first_sym]
+                    print(f"\n[FORCE] Injecting fake price move for {first_sym} to trigger entry...")
+                    # Inject multiple ticks over 6 seconds to ensure both 1s and 5s bars are created
+                    now = datetime.now()
+                    # 1s shock
+                    m.on_tick(first_sym, 10.0, 1000, 10.0, now - timedelta(seconds=6), 9.99, 10.01)
+                    m.on_tick(first_sym, 11.0, 100000, 10.5, now - timedelta(seconds=5), 10.99, 11.01)
+                    # 5s confirm (needs another tick after the 5s window closes)
+                    m.on_tick(first_sym, 11.0, 1000, 11.0, now - timedelta(seconds=1), 10.99, 11.01)
+                    m.on_tick(first_sym, 12.0, 100000, 11.5, now, 11.99, 12.01)
+            except ImportError:
+                # Fallback for non-Windows (select based)
+                import select
+                import sys
+                if select.select([sys.stdin], [], [], 0)[0]:
+                    sys.stdin.readline()
+                    first_sym = config.WATCHLIST[0]
+                    m = monitors[first_sym]
+                    print(f"\n[FORCE] Injecting fake price move for {first_sym} to trigger entry...")
+                    # Inject multiple ticks over 6 seconds to ensure both 1s and 5s bars are created
+                    now = datetime.now()
+                    # 1s shock
+                    m.on_tick(first_sym, 10.0, 1000, 10.0, now - timedelta(seconds=6), 9.99, 10.01)
+                    m.on_tick(first_sym, 11.0, 100000, 10.5, now - timedelta(seconds=5), 10.99, 11.01)
+                    # 5s confirm (needs another tick after the 5s window closes)
+                    m.on_tick(first_sym, 11.0, 1000, 11.0, now - timedelta(seconds=1), 10.99, 11.01)
+                    m.on_tick(first_sym, 12.0, 100000, 11.5, now, 11.99, 12.01)
+                
             time.sleep(1)
     except KeyboardInterrupt:
         print("\n[INFO] Stopping...")

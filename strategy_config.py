@@ -41,8 +41,8 @@ NO_FADE_FRAC = 0.20             # Must hold top 80% of the 5s range
 # =============================================================================
 # ORDER PLACEMENT
 # =============================================================================
-ENTRY_OFFSET = 0.02             # $0.02 offset for aggressive limit
-ENTRY_TIMEOUT_MS = 5000         # 5s timeout
+ENTRY_OFFSET = 0.00             # 0 offset for aggressive limit (market-like)
+ENTRY_TIMEOUT_MS = 300000       # 5 minutes timeout for testing
 PARTIAL_FILL_RULE = "CANCEL"
 
 # =============================================================================
@@ -91,8 +91,8 @@ BACKTEST_1S_WHAT_TO_SHOW = "TRADES"
 # DEBUG SETTINGS
 # =============================================================================
 DEBUG_TIME_WINDOW = None
-BYPASS_VWAP_CHECK = False
-BYPASS_TIME_WINDOW = False
+BYPASS_VWAP_CHECK = True
+BYPASS_TIME_WINDOW = True
 
 # =============================================================================
 # WARM-UP SETTINGS
