@@ -1,31 +1,27 @@
-# Python
-__pycache__/
-*.py[cod]
-*$py.class
-*.so
-.Python
-
-# Virtual environments
-venv/
-env/
-ENV/
 
 # IDE
-.vscode/
-.idea/
-*.swp
-*.swo
-
-# Logs
-*.log
-tws_errors.log
-strategy.log
-
 # Local data
+# Logs
+# OS
+# Python
+# Virtual environments
+*$py.class
 *.csv
 *.db
+*.log
+*.py[cod]
+*.so
 *.sqlite
-
-# OS
+*.swo
+*.swp
 .DS_Store
+.Python
+.idea/
+.vscode/
+ENV/
 Thumbs.db
+__pycache__/
+env/
+strategy.log
+tws_errors.log
+venv/
