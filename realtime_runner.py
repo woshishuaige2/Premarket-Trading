@@ -257,7 +257,15 @@ def run():
         return
 
     executor = ExecutionEngine(tws_app, config.ACCOUNT_NUMBER)
-    monitors = {s: SymbolMonitor(s, tws_app, executor) for s in config.WATCHLIST}
+    
+    # Initialize monitors with progress feedback
+    monitors = {}
+    total = len(config.WATCHLIST)
+    print(f"\n[INIT] Preloading history for {total} symbols...")
+    for i, symbol in enumerate(config.WATCHLIST, 1):
+        print(f"[{i}/{total}] Initializing {symbol}...", end="\r")
+        monitors[symbol] = SymbolMonitor(symbol, tws_app, executor)
+    print(f"\n[INIT] Preloading complete. Starting market data subscriptions...")
 
     def create_callback(sym):
         return lambda s, p, v, vw, ts, b, a: monitors[s].on_tick(s, p, v, vw, ts, b, a)

@@ -139,6 +139,10 @@ class ExecutionEngine:
             order.account = self.account
             order.outsideRth = True
             order.transmit = True
+            # Explicitly set tif to GTC or DAY for premarket consistency
+            order.tif = "DAY" 
+            # Some versions of TWS require this for premarket
+            order.overridePercentageConstraints = True
             
             self.positions[symbol] = {
                 'status': 'SUBMITTING',
@@ -179,14 +183,15 @@ class ExecutionEngine:
             contract = self._create_contract(symbol)
             order = Order()
             order.action = "SELL"
-            order.orderType = "MKT" # In premarket MKT might be rejected, use aggressive LMT
-            # TWS often accepts MKT in premarket if routed correctly, but LMT is safer
             order.orderType = "LMT"
-            order.lmtPrice = round(price * 0.98, 2) # 2% slippage allowance for fast exit
+            # More aggressive exit to ensure fill in premarket
+            order.lmtPrice = round(price * 0.95, 2) 
             order.totalQuantity = pos['filled_shares']
             order.account = self.account
             order.outsideRth = True
             order.transmit = True
+            order.tif = "DAY"
+            order.overridePercentageConstraints = True
             
             order_id = self.tws_app.next_order_id
             self.tws_app.next_order_id += 1
